@@ -11,32 +11,13 @@ export class TransactionsService {
     });
   }
 
-  async runExample() {
+  async getTxById(txId: string) {
     try {
-      const latestBlock = await this.API.blocksLatest();
-      const networkInfo = await this.API.network();
-      const latestEpoch = await this.API.epochsLatest();
-      const health = await this.API.health();
-      const address = await this.API.addresses(
-        'addr_test1qrpnfr74pd76808uu3c98g7qsp2t8hdt6h9959z3k9y0asday7uw3etpkz9j700h6walvl326xpskq6x9funyaljmq6qut9cd5',
-      );
-      const pools = await this.API.pools({ page: 1, count: 10, order: 'asc' });
-
-      return {
-        pools,
-        address,
-        networkInfo,
-        latestEpoch,
-        latestBlock,
-        health,
-      };
-    } catch (err) {
-      console.log('error', err);
+      const transaction = await this.API.txsUtxos(txId);
+      return transaction;
+    } catch (error) {
+      console.log(error);
+      throw new NotFoundException();
     }
-  }
-
-  getTxById(txId: string) {
-    return { txId };
-    // throw new NotFoundException()
   }
 }
