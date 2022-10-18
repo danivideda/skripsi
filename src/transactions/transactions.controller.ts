@@ -8,6 +8,7 @@ export class TransactionsController {
 
   @Get(':id')
   getById(@Param('id') id: string) {
-    return this.transactionService.getTxById(id);
+    // return this.transactionService.getTxById(id);
+    return this.transactionService.runExample()
   }
 }
