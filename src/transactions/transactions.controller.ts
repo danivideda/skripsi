@@ -7,14 +7,6 @@ export class TransactionsController {
 
   @Get(':id')
   async getById(@Param('id') id: string) {
-    // Get transaction from the service. Error is handled by the service
-    const transaction = await this.transactionService.getTxById(id);
-
-    const response = {
-      statusCode: HttpStatus.OK,
-      data: transaction,
-    };
-
-    return response;
+    return await this.transactionService.getTxById(id);
   }
 }

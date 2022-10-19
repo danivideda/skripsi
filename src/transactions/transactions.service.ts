@@ -1,5 +1,5 @@
 import { BlockFrostAPI } from '@blockfrost/blockfrost-js';
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 @Injectable()
@@ -12,12 +12,19 @@ export class TransactionsService {
   }
 
   async getTxById(txId: string) {
+    let transaction;
     try {
-      const transaction = await this.API.txsUtxos(txId);
-      return transaction;
+      transaction = await this.API.txsUtxos(txId);
     } catch (error) {
       console.log(error);
       throw new NotFoundException();
     }
+
+    const response = {
+      statusCode: HttpStatus.OK,
+      data: transaction,
+    };
+
+    return response;
   }
 }
