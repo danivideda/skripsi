@@ -1,2 +1,2 @@
-export * from './send.dto'
-export * from './submit.dto'
+export * from './send-transactions.dto'
+export * from './submit-transactions.dto'
