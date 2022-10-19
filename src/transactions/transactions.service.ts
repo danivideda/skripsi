@@ -8,7 +8,7 @@ export class TransactionsService {
   private API: BlockFrostAPI;
   constructor(config: ConfigService) {
     this.API = new BlockFrostAPI({
-      projectId: config.get('BLOCKFROST_API').toString(),
+      projectId: `${config.get('BLOCKFROST_API')}`,
     });
   }
 
