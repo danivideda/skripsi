@@ -1,6 +1,7 @@
 import { BlockFrostAPI } from '@blockfrost/blockfrost-js';
 import { HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { SendDto, SubmitDto } from './dto';
 
 @Injectable()
 export class TransactionsService {
@@ -11,7 +12,7 @@ export class TransactionsService {
     });
   }
 
-  async getTxById(txId: string) {
+  async getTransactionById(txId: string) {
     let transaction;
     try {
       transaction = await this.API.txsUtxos(txId);
@@ -23,6 +24,24 @@ export class TransactionsService {
     const response = {
       statusCode: HttpStatus.OK,
       data: transaction,
+    };
+
+    return response;
+  }
+
+  async sendTransaction(data: SendDto) {
+    const response = {
+      statusCode: HttpStatus.OK,
+      data: data,
+    };
+
+    return response;
+  }
+
+  async submitTransaction(data: SubmitDto) {
+    const response = {
+      statusCode: HttpStatus.OK,
+      data: data,
     };
 
     return response;
