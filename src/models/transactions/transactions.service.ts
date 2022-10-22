@@ -1,15 +1,15 @@
 import { BlockFrostAPI } from '@blockfrost/blockfrost-js';
 import { HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { BlockfrostProvider } from 'src/providers/blockfrost/blockfrost.provider';
 import { SendDto, SubmitDto } from './dto';
 
 @Injectable()
 export class TransactionsService {
   private API: BlockFrostAPI;
-  constructor(config: ConfigService) {
-    this.API = new BlockFrostAPI({
-      projectId: `${config.get('BLOCKFROST_API')}`,
-    });
+
+  constructor(provider: BlockfrostProvider) {
+    this.API = provider.API;
   }
 
   async getTransactionById(txId: string) {
