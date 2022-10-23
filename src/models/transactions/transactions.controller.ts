@@ -11,11 +11,6 @@ export class TransactionsController {
     return await this.transactionService.getTransactionById(id);
   }
 
-  @Post('send')
-  async send(@Body() sendDto: SendDto) {
-    return this.transactionService.sendTransaction(sendDto);
-  }
-
   @Post('submit')
   async submit(@Body() submitDto: SubmitDto) {
     return this.transactionService.submitTransaction(submitDto);

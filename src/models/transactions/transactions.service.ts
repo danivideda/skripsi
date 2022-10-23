@@ -1,5 +1,15 @@
-import { HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
-import { BlockFrostAPI } from '@blockfrost/blockfrost-js';
+import {
+  BadRequestException,
+  ForbiddenException,
+  HttpStatus,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
+import {
+  BlockFrostAPI,
+  BlockfrostServerError,
+} from '@blockfrost/blockfrost-js';
 import { BlockfrostProvider } from 'src/providers/blockfrost/blockfrost.provider';
 import { UtilsService } from 'src/utils/utils.service';
 import { SendDto, SubmitDto } from './dto';
@@ -29,20 +39,26 @@ export class TransactionsService {
     return utils.createResponse(HttpStatus.OK, transaction);
   }
 
-  async sendTransaction(data: SendDto) {
+  async submitTransaction(body: SubmitDto) {
     const api = this.blockforstApi;
     const utils = this.utilsService;
-    let transaction;
+    const { address, cborHex } = body;
+    let txId;
 
-    return utils.createResponse(HttpStatus.OK, data);
-  }
+    try {
+      txId = await api.txSubmit(cborHex);
+    } catch (error) {
+      if (
+        error instanceof BlockfrostServerError &&
+        error.message.includes('transaction submit error')
+      ) {
+        console.log(error);
+        throw new BadRequestException('transaction submit error');
+      } else {
+        throw new InternalServerErrorException();
+      }
+    }
 
-  async submitTransaction(data: SubmitDto) {
-    const response = {
-      statusCode: HttpStatus.OK,
-      data: data,
-    };
-
-    return response;
+    return utils.createResponse(HttpStatus.OK, { txId, address });
   }
 }
