@@ -1,6 +1,6 @@
-import { BlockFrostAPI } from "@blockfrost/blockfrost-js";
-import { Injectable } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
+import { BlockFrostAPI } from '@blockfrost/blockfrost-js';
+import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class BlockfrostProvider {

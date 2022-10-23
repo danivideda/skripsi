@@ -1,41 +1,40 @@
-import { BlockFrostAPI } from '@blockfrost/blockfrost-js';
 import { HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { BlockFrostAPI } from '@blockfrost/blockfrost-js';
 import { BlockfrostProvider } from 'src/providers/blockfrost/blockfrost.provider';
+import { UtilsService } from 'src/utils/utils.service';
 import { SendDto, SubmitDto } from './dto';
 
 @Injectable()
 export class TransactionsService {
-  private API: BlockFrostAPI;
+  private blockforstApi: BlockFrostAPI;
 
-  constructor(provider: BlockfrostProvider) {
-    this.API = provider.API;
+  constructor(
+    provider: BlockfrostProvider,
+    private utilsService: UtilsService,
+  ) {
+    this.blockforstApi = provider.API;
   }
 
   async getTransactionById(txId: string) {
+    const api = this.blockforstApi;
+    const utils = this.utilsService;
     let transaction;
+
     try {
-      transaction = await this.API.txsUtxos(txId);
+      transaction = await api.txsUtxos(txId);
     } catch (error) {
       console.log(error);
       throw new NotFoundException();
     }
-
-    const response = {
-      statusCode: HttpStatus.OK,
-      data: transaction,
-    };
-
-    return response;
+    return utils.createResponse(HttpStatus.OK, transaction);
   }
 
   async sendTransaction(data: SendDto) {
-    const response = {
-      statusCode: HttpStatus.OK,
-      data: data,
-    };
+    const api = this.blockforstApi;
+    const utils = this.utilsService;
+    let transaction;
 
-    return response;
+    return utils.createResponse(HttpStatus.OK, data);
   }
 
   async submitTransaction(data: SubmitDto) {

@@ -18,6 +18,6 @@ export class TransactionsController {
 
   @Post('submit')
   async submit(@Body() submitDto: SubmitDto) {
-    return this.transactionService.submitTransaction(submitDto)
+    return this.transactionService.submitTransaction(submitDto);
   }
 }

@@ -1,11 +1,11 @@
-import { IsNotEmpty, IsString } from "class-validator"
+import { IsNotEmpty, IsString } from 'class-validator';
 
 export class SubmitDto {
   @IsNotEmpty()
   @IsString()
-  public address: string
+  public address: string;
 
   @IsNotEmpty()
   @IsString()
-  public cborHex: string
+  public cborHex: string;
 }
