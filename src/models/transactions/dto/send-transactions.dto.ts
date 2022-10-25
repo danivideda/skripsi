@@ -1,11 +1,19 @@
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsInt, IsNotEmpty, IsString } from 'class-validator';
 
 export class SendDto {
   @IsNotEmpty()
   @IsString()
-  public address: string;
+  public originAddress: string;
+
+  @IsNotEmpty()
+  @IsString()
+  public destinationAddress: string;
 
   @IsNotEmpty()
   @IsString()
   public cborHex: string;
+
+  @IsNotEmpty()
+  @IsInt()
+  public lovelace: number;
 }
