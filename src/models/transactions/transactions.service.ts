@@ -1,26 +1,22 @@
 import {
   BadRequestException,
-  ForbiddenException,
   HttpStatus,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import {
-  BlockFrostAPI,
-  BlockfrostServerError,
-} from '@blockfrost/blockfrost-js';
+import { BlockfrostServerError } from '@blockfrost/blockfrost-js';
 import { BlockfrostProvider } from 'src/providers/blockfrost/blockfrost.provider';
+import { RedisProvider } from 'src/providers/redis/redis.provider';
 import { UtilsService } from 'src/utils/utils.service';
 import { SendDto, SubmitDto } from './dto';
-import { RedisProvider } from 'src/providers/redis/redis.provider';
 
 @Injectable()
 export class TransactionsService {
   constructor(
     private blockfrostProvider: BlockfrostProvider,
-    private utilsService: UtilsService,
     private redisProvider: RedisProvider,
+    private utilsService: UtilsService,
   ) {}
 
   async getTransactionById(txId: string) {
@@ -39,14 +35,14 @@ export class TransactionsService {
   async sendTransaction(body: SendDto) {
     const { originAddress, destinationAddress, cborHex, lovelace } = body;
     const { api, utils } = this.init();
-    const redisClient = await this.initializeDatabase()
+    const redisClient = await this.initializeDatabase();
 
     let blockfrost;
 
     try {
       // TODO: Check into Blockfrost and then input raw cborHex into Redis database in JSON
-      blockfrost = await api.network()
-      await redisClient.set('nestjs-send-endpoint', JSON.stringify(body))
+      blockfrost = await api.network();
+      await redisClient.set('nestjs-send-endpoint', JSON.stringify(body));
     } catch (error) {
       console.log(error);
       if (error instanceof BlockfrostServerError) {
