@@ -5,7 +5,7 @@ import { Client } from 'redis-om';
 
 @Injectable()
 export class RedisProvider {
-  public redis: RedisClientType;
+  private redis: RedisClientType;
   constructor(config: ConfigService) {
     this.redis = createClient({
       url: <string>config.get('REDIS_URL')

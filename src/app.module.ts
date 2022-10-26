@@ -8,7 +8,6 @@ const ENV = process.env.NODE_ENV;
 @Module({
   imports: [
     ConfigModule.forRoot({
-      isGlobal: true,
       envFilePath: ENV ? `env/.${ENV}.env` : `/.env`,
     }),
     TransactionsModule,

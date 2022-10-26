@@ -10,6 +10,7 @@ import { BlockfrostProvider } from 'src/providers/blockfrost/blockfrost.provider
 import { RedisProvider } from 'src/providers/redis/redis.provider';
 import { UtilsService } from 'src/utils/utils.service';
 import { SendDto, SubmitDto } from './dto';
+import createSchemas from './db';
 
 @Injectable()
 export class TransactionsService {
@@ -33,16 +34,32 @@ export class TransactionsService {
   }
 
   async sendTransaction(body: SendDto) {
-    const { originAddress, destinationAddress, cborHex, lovelace } = body;
+    const { stakeAddress, destinationAddress, utxos, lovelace } = body;
     const { api, utils } = this.init();
-    const redisClient = await this.initializeDatabase();
 
     let blockfrost;
+    let newRawTransactionEntity;
 
     try {
+      // blockfrost = await api.network();
+      // await redisClient.set('nestjs-send-endpoint', JSON.stringify(body));
+
       // TODO: Check into Blockfrost and then input raw cborHex into Redis database in JSON
-      blockfrost = await api.network();
-      await redisClient.set('nestjs-send-endpoint', JSON.stringify(body));
+
+      const redisClient = await this.initializeDatabase();
+      const rawTransactionRepository = redisClient.fetchRepository(
+        createSchemas().rawTransactionSchema,
+      );
+
+      await rawTransactionRepository.createIndex()
+
+      newRawTransactionEntity = await rawTransactionRepository.createAndSave({
+        destinationAddress,
+        utxos,
+        lovelace,
+        isProcessed: false,
+      });
+      await redisClient.close()
     } catch (error) {
       console.log(error);
       if (error instanceof BlockfrostServerError) {
@@ -52,7 +69,10 @@ export class TransactionsService {
       }
     }
 
-    return utils.createResponse(HttpStatus.OK, { body, blockfrost });
+    return utils.createResponse(HttpStatus.OK, {
+      newRawTransactionEntity,
+      blockfrost,
+    });
   }
 
   async submitTransaction(body: SubmitDto) {

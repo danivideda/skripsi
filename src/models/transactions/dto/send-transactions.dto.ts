@@ -3,7 +3,7 @@ import { IsInt, IsNotEmpty, IsString } from 'class-validator';
 export class SendDto {
   @IsNotEmpty()
   @IsString()
-  public originAddress: string;
+  public stakeAddress: string;
 
   @IsNotEmpty()
   @IsString()
@@ -11,7 +11,7 @@ export class SendDto {
 
   @IsNotEmpty()
   @IsString()
-  public cborHex: string;
+  public utxos: string;
 
   @IsNotEmpty()
   @IsInt()
