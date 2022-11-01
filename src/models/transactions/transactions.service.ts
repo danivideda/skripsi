@@ -1,35 +1,35 @@
+import { HttpStatus, Inject, Injectable } from '@nestjs/common';
+import * as NestException from '@nestjs/common/exceptions';
 import {
-  BadRequestException,
-  HttpStatus,
-  Injectable,
-  InternalServerErrorException,
-  NotFoundException,
-} from '@nestjs/common';
-import { BlockfrostServerError } from '@blockfrost/blockfrost-js';
-import { BlockfrostProvider } from 'src/providers/blockfrost/blockfrost.provider';
-import { RedisProvider } from 'src/providers/redis/redis.provider';
+  BlockFrostAPI,
+  BlockfrostServerError,
+} from '@blockfrost/blockfrost-js';
 import { UtilsService } from 'src/utils/utils.service';
 import { SendDto, SubmitDto } from './dto';
 import createSchemas from './db';
+import { Client } from 'redis-om';
+import { BLOCKFROST_CLIENT, REDIS_CLIENT } from 'src/common/constants';
 
 @Injectable()
 export class TransactionsService {
   constructor(
-    private blockfrostProvider: BlockfrostProvider,
-    private redisProvider: RedisProvider,
     private utilsService: UtilsService,
+    @Inject(BLOCKFROST_CLIENT) private blockfrostClient: BlockFrostAPI,
+    @Inject(REDIS_CLIENT) private redisClient: Client,
   ) {}
 
   async getTransactionById(txId: string) {
     const { api, utils } = this.init();
+
     let transaction;
 
     try {
       transaction = await api.txsUtxos(txId);
     } catch (error) {
       console.log(error);
-      throw new NotFoundException();
+      throw new NestException.NotFoundException();
     }
+
     return utils.createResponse(HttpStatus.OK, transaction);
   }
 
@@ -46,12 +46,12 @@ export class TransactionsService {
 
       // TODO: Check into Blockfrost and then input raw cborHex into Redis database in JSON
 
-      const redisClient = await this.initializeDatabase();
+      const redisClient = this.redisClient;
       const rawTransactionRepository = redisClient.fetchRepository(
         createSchemas().rawTransactionSchema,
       );
 
-      await rawTransactionRepository.createIndex()
+      await rawTransactionRepository.createIndex();
 
       newRawTransactionEntity = await rawTransactionRepository.createAndSave({
         destinationAddress,
@@ -59,13 +59,12 @@ export class TransactionsService {
         lovelace,
         isProcessed: false,
       });
-      await redisClient.close()
     } catch (error) {
       console.log(error);
       if (error instanceof BlockfrostServerError) {
-        throw new BadRequestException('Blockfrost Error');
+        throw new NestException.BadRequestException('Blockfrost Error');
       } else {
-        throw new InternalServerErrorException();
+        throw new NestException.InternalServerErrorException();
       }
     }
 
@@ -86,9 +85,9 @@ export class TransactionsService {
     } catch (error) {
       console.log(error);
       if (error instanceof BlockfrostServerError) {
-        throw new BadRequestException('Blockfrost Error');
+        throw new NestException.BadRequestException('Blockfrost Error');
       } else {
-        throw new InternalServerErrorException();
+        throw new NestException.InternalServerErrorException();
       }
     }
 
@@ -96,17 +95,12 @@ export class TransactionsService {
   }
 
   private init() {
-    const api = this.blockfrostProvider.API;
+    const api = this.blockfrostClient;
     const utils = this.utilsService;
 
     return {
       api,
       utils,
     };
-  }
-
-  private async initializeDatabase() {
-    const redisClient = await this.redisProvider.connect();
-    return redisClient;
   }
 }
