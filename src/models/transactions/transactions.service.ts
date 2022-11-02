@@ -1,4 +1,4 @@
-import { HttpStatus, Inject, Injectable } from '@nestjs/common';
+import { HttpStatus, Inject, Injectable, Logger } from '@nestjs/common';
 import * as NestException from '@nestjs/common/exceptions';
 import {
   BlockFrostAPI,
@@ -6,16 +6,16 @@ import {
 } from '@blockfrost/blockfrost-js';
 import { UtilsService } from 'src/utils/utils.service';
 import { SendDto, SubmitDto } from './dto';
-import createSchemas from './db';
-import { Client } from 'redis-om';
 import { BLOCKFROST_CLIENT, REDIS_CLIENT } from 'src/common/constants';
+import { RedisClientType } from 'redis';
+import { RedisKeyExistsError } from 'src/common/error.type';
 
 @Injectable()
 export class TransactionsService {
   constructor(
     private utilsService: UtilsService,
     @Inject(BLOCKFROST_CLIENT) private blockfrostClient: BlockFrostAPI,
-    @Inject(REDIS_CLIENT) private redisClient: Client,
+    @Inject(REDIS_CLIENT) private redisClient: RedisClientType,
   ) {}
 
   async getTransactionById(txId: string) {
@@ -30,46 +30,57 @@ export class TransactionsService {
       throw new NestException.NotFoundException();
     }
 
-    return utils.createResponse(HttpStatus.OK, transaction);
+    return utils.createResponse(HttpStatus.OK, 'message', transaction);
   }
 
   async sendTransaction(body: SendDto) {
     const { stakeAddress, destinationAddress, utxos, lovelace } = body;
     const { api, utils } = this.init();
+    const logger = new Logger('Send Transaction');
+    const redisClient = this.redisClient;
+    const RedisJSONKey = `RawTx:${utils.sha256(`${stakeAddress}`)}`;
 
     let blockfrost;
-    let newRawTransactionEntity;
+    let newRawTx;
+    let rawTxRepo;
+    let redisTransaction;
 
     try {
-      // blockfrost = await api.network();
-      // await redisClient.set('nestjs-send-endpoint', JSON.stringify(body));
+      redisTransaction = await redisClient
+        .multi()
+        .json.SET(
+          RedisJSONKey,
+          '$',
+          {
+            destinationAddress,
+            utxos,
+            lovelace,
+          },
+          { NX: true },
+        )
+        .expire(RedisJSONKey, 300)
+        .exec();
 
-      // TODO: Check into Blockfrost and then input raw cborHex into Redis database in JSON
-
-      const redisClient = this.redisClient;
-      const rawTransactionRepository = redisClient.fetchRepository(
-        createSchemas().rawTransactionSchema,
-      );
-
-      await rawTransactionRepository.createIndex();
-
-      newRawTransactionEntity = await rawTransactionRepository.createAndSave({
-        destinationAddress,
-        utxos,
-        lovelace,
-        isProcessed: false,
-      });
+      if (!redisTransaction[0]) {
+        throw new RedisKeyExistsError();
+      }
+      newRawTx = await redisClient.json.get(RedisJSONKey);
+      rawTxRepo = await redisClient.keys('RawTx:*');
     } catch (error) {
-      console.log(error);
+      logger.error(error);
       if (error instanceof BlockfrostServerError) {
         throw new NestException.BadRequestException('Blockfrost Error');
+      } else if (error instanceof RedisKeyExistsError) {
+        throw new NestException.BadRequestException(error.message);
       } else {
         throw new NestException.InternalServerErrorException();
       }
     }
 
-    return utils.createResponse(HttpStatus.OK, {
-      newRawTransactionEntity,
+    return utils.createResponse(HttpStatus.CREATED, 'Transaction created', {
+      newRawTx,
+      rawTxRepo,
+      redisTransaction,
       blockfrost,
     });
   }
@@ -91,7 +102,7 @@ export class TransactionsService {
       }
     }
 
-    return utils.createResponse(HttpStatus.OK, { txId, address });
+    return utils.createResponse(HttpStatus.OK, 'message', { txId, address });
   }
 
   private init() {

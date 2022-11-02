@@ -22,7 +22,8 @@ export class RedisModule {
         redis.on('connect', () => logger.log('Redis Client connected'));
 
         await redis.connect();
-        const client = await new Client().use(redis);
+        // const client = await new Client().use(redis);
+        const client = redis
         return client;
       },
       inject: [ConfigService],
