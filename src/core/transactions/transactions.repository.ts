@@ -10,6 +10,7 @@ import { RedisKeyExistsError } from 'src/common';
 export class TransactionsRepository {
   private readonly ttl: number;
   private readonly logger: Logger;
+  private readonly repo: string;
 
   constructor(
     configService: ConfigService,
@@ -18,14 +19,15 @@ export class TransactionsRepository {
   ) {
     this.ttl = parseInt(configService.getOrThrow('TRANSACTIONS_TIME_TO_LIVE'));
     this.logger = new Logger(TransactionsRepository.name);
+    this.repo = 'Transactions';
   }
 
   async createTransaction(
     transaction: CreateTransactionData,
     stakeAddress: string,
   ) {
-    const { redisClient, logger, ttl } = this.init();
-    const RedisJSONKey = `Transactions:${this.utilsService.sha256(`${stakeAddress}`)}`;
+    const { redisClient, logger, ttl, repo } = this.init();
+    const RedisJSONKey = repo.concat(':', stakeAddress);
 
     const redisTransaction = await redisClient
       .multi()
@@ -45,11 +47,11 @@ export class TransactionsRepository {
   }
 
   async getCount() {
-    const { redisClient, logger } = this.init();
-    const txsData = await redisClient.keys('Txs:*');
+    const { redisClient, logger, repo } = this.init();
+    const txsData = await redisClient.keys(`${repo}:*`);
     const count = txsData.length;
 
-    logger.log(`Transactions repo count: ${count}`);
+    logger.log(`${repo} repo count: ${count}`);
 
     return count;
   }
@@ -58,7 +60,8 @@ export class TransactionsRepository {
     return {
       redisClient: this.redisClient,
       logger: this.logger,
-      ttl: this.ttl
+      ttl: this.ttl,
+      repo: this.repo,
     };
   }
 }
