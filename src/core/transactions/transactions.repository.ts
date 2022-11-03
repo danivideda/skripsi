@@ -5,7 +5,6 @@ import { REDIS_CLIENT } from 'src/common';
 import { UtilsService } from 'src/utils/utils.service';
 import { CreateTransactionData } from './transactions.type';
 import { RedisKeyExistsError } from 'src/common';
-import * as NestException from '@nestjs/common/exceptions';
 
 @Injectable()
 export class TransactionsRepository {
@@ -13,7 +12,7 @@ export class TransactionsRepository {
   private readonly logger = new Logger(TransactionsRepository.name);
 
   constructor(
-    private readonly configService: ConfigService,
+    configService: ConfigService,
     private readonly utilsService: UtilsService,
     @Inject(REDIS_CLIENT) private readonly redisClient: RedisClientType,
   ) {
@@ -26,31 +25,26 @@ export class TransactionsRepository {
   ) {
     const redisClient = this.redisClient;
     const logger = this.logger;
-    const RedisJSONKey = `RawTx:${this.utilsService.sha256(`${stakeAddress}`)}`;
+    const RedisJSONKey = `Txs:${this.utilsService.sha256(`${stakeAddress}`)}`;
 
-    let newRawTx;
+    let newTransaction;
 
-    try {
-      const redisTransaction = await redisClient
-        .multi()
-        .json.SET(RedisJSONKey, '$', transaction, { NX: true })
-        .expire(RedisJSONKey, this.ttl)
-        .exec();
+    const redisTransaction = await redisClient
+      .multi()
+      .json.SET(RedisJSONKey, '$', transaction, { NX: true })
+      .expire(RedisJSONKey, this.ttl)
+      .exec();
 
-      if (!redisTransaction[0]) {
-        throw new RedisKeyExistsError();
-      }
-
-      newRawTx = await redisClient.json.get(RedisJSONKey);
-    } catch (error) {
-      logger.error(error);
-      if (error instanceof RedisKeyExistsError) {
-        throw new NestException.BadRequestException(error.message);
-      } else {
-        throw new NestException.InternalServerErrorException();
-      }
+    if (!redisTransaction[0]) {
+      throw new RedisKeyExistsError(`Key '${RedisJSONKey}' already exists.`);
     }
 
-    return newRawTx;
+    newTransaction = await redisClient.json.get(RedisJSONKey);
+
+    logger.log(
+      `Successfully created ${RedisJSONKey}`,
+    );
+
+    return newTransaction;
   }
 }

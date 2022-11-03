@@ -1,6 +1,6 @@
 import { IsInt, IsNotEmpty, IsString } from 'class-validator';
 
-export class SendDto {
+export class SendTransactionDto {
   @IsNotEmpty()
   @IsString()
   public stakeAddress: string;
