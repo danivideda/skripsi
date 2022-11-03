@@ -9,7 +9,7 @@ import { RedisKeyExistsError } from 'src/common';
 @Injectable()
 export class TransactionsRepository {
   private readonly ttl: number;
-  private readonly logger = new Logger(TransactionsRepository.name);
+  private readonly logger: Logger;
 
   constructor(
     configService: ConfigService,
@@ -17,34 +17,48 @@ export class TransactionsRepository {
     @Inject(REDIS_CLIENT) private readonly redisClient: RedisClientType,
   ) {
     this.ttl = parseInt(configService.getOrThrow('TRANSACTIONS_TIME_TO_LIVE'));
+    this.logger = new Logger(TransactionsRepository.name);
   }
 
   async createTransaction(
     transaction: CreateTransactionData,
     stakeAddress: string,
   ) {
-    const redisClient = this.redisClient;
-    const logger = this.logger;
-    const RedisJSONKey = `Txs:${this.utilsService.sha256(`${stakeAddress}`)}`;
-
-    let newTransaction;
+    const { redisClient, logger, ttl } = this.init();
+    const RedisJSONKey = `Transactions:${this.utilsService.sha256(`${stakeAddress}`)}`;
 
     const redisTransaction = await redisClient
       .multi()
       .json.SET(RedisJSONKey, '$', transaction, { NX: true })
-      .expire(RedisJSONKey, this.ttl)
+      .expire(RedisJSONKey, ttl)
       .exec();
 
     if (!redisTransaction[0]) {
       throw new RedisKeyExistsError(`Key '${RedisJSONKey}' already exists.`);
     }
 
-    newTransaction = await redisClient.json.get(RedisJSONKey);
+    const newTransaction = await redisClient.json.get(RedisJSONKey);
 
-    logger.log(
-      `Successfully created ${RedisJSONKey}`,
-    );
+    logger.log(`Successfully created ${RedisJSONKey}`);
 
     return newTransaction;
+  }
+
+  async getCount() {
+    const { redisClient, logger } = this.init();
+    const txsData = await redisClient.keys('Txs:*');
+    const count = txsData.length;
+
+    logger.log(`Transactions repo count: ${count}`);
+
+    return count;
+  }
+
+  private init() {
+    return {
+      redisClient: this.redisClient,
+      logger: this.logger,
+      ttl: this.ttl
+    };
   }
 }

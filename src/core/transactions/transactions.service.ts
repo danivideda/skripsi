@@ -22,15 +22,13 @@ export class TransactionsService {
   }
 
   async sendTransaction(body: SendTransactionDto) {
-    const logger = this.logger;
-    const utils = this.utilsService;
+    const { logger, utils, repository } = this.init();
     const { stakeAddress, destinationAddress, utxos, lovelace } = body;
-    const transactionsRepository = this.transactionsRepository;
 
     let createdTransaction;
 
     try {
-      createdTransaction = await transactionsRepository.createTransaction(
+      createdTransaction = await repository.createTransaction(
         { destinationAddress, utxos, lovelace },
         stakeAddress,
       );
@@ -43,8 +41,45 @@ export class TransactionsService {
       }
     }
 
+    if ((await repository.getCount()) >= 5) {
+      return utils.createResponse(
+        HttpStatus.CREATED,
+        'Transaction created and processed',
+        {
+          createdTransaction,
+        },
+      );
+    }
+
+    logger.log('Transaction created');
     return utils.createResponse(HttpStatus.CREATED, 'Transaction created', {
       createdTransaction,
     });
+  }
+
+  async getTransactionsCount() {
+    const { logger, utils, repository } = this.init();
+
+    let transactionsCount;
+
+    try {
+      transactionsCount = await repository.getCount();
+    } catch (error) {
+      throw new InternalServerErrorException();
+    }
+
+    logger.log('Get transaction count');
+
+    return utils.createResponse(HttpStatus.OK, 'Get count', {
+      transactionsCount,
+    });
+  }
+
+  private init() {
+    return {
+      logger: this.logger,
+      utils: this.utilsService,
+      repository: this.transactionsRepository,
+    };
   }
 }

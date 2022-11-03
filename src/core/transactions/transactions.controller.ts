@@ -1,4 +1,4 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post } from '@nestjs/common';
 import { SendTransactionDto } from './dto';
 import { TransactionsService } from './transactions.service';
 
@@ -8,6 +8,11 @@ export class TransactionsController {
 
   @Post('send')
   async send(@Body() sendDto: SendTransactionDto) {
-    return this.transactionService.sendTransaction(sendDto);
+    return await this.transactionService.sendTransaction(sendDto);
+  }
+
+  @Get('count')
+  async getTransactionsCount() {
+    return await this.transactionService.getTransactionsCount();
   }
 }
