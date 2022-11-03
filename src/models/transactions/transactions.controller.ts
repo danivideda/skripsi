@@ -8,7 +8,8 @@ export class TransactionsController {
 
   @Get(':id')
   async getById(@Param('id') id: string) {
-    return await this.transactionService.getTransactionById(id);
+    // return await this.transactionService.getTransactionById(id);
+    return { message: 'deprecated' };
   }
 
   @Post('send')
