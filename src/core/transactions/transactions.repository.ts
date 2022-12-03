@@ -17,7 +17,7 @@ export class TransactionsRepository {
     private readonly utilsService: UtilsService,
     @Inject(REDIS_CLIENT) private readonly redisClient: RedisClientType,
   ) {
-    this.ttl = parseInt(configService.getOrThrow('TRANSACTIONS_TIME_TO_LIVE'));
+    // this.ttl = parseInt(configService.getOrThrow('TRANSACTIONS_TIME_TO_LIVE'));
     this.logger = new Logger(TransactionsRepository.name);
     this.repo = 'Transactions';
   }
@@ -26,20 +26,21 @@ export class TransactionsRepository {
     transaction: CreateTransactionData,
     stakeAddress: string,
   ) {
-    const { redisClient, logger, ttl, repo } = this.init();
+    const { redisClient, logger, repo } = this.init();
     const RedisJSONKey = repo.concat(':', stakeAddress);
+    const RedisListKey = repo.concat(':Queue');
 
-    const redisTransaction = await redisClient
-      .multi()
-      .json.SET(RedisJSONKey, '$', transaction, { NX: true })
-      .expire(RedisJSONKey, ttl)
-      .exec();
-
-    if (!redisTransaction[0]) {
+    if (await redisClient.json.GET(RedisJSONKey)) {
       throw new RedisKeyExistsError(`Key '${RedisJSONKey}' already exists.`);
     }
 
-    const newTransaction = await redisClient.json.get(RedisJSONKey);
+    await redisClient
+      .multi()
+      .json.SET(RedisJSONKey, '$', transaction)
+      .RPUSH(RedisListKey, RedisJSONKey)
+      .exec();
+
+    const newTransaction = await redisClient.json.GET(RedisJSONKey);
 
     logger.log(`Successfully created ${RedisJSONKey}`);
 
@@ -48,8 +49,8 @@ export class TransactionsRepository {
 
   async getCount() {
     const { redisClient, logger, repo } = this.init();
-    const txsData = await redisClient.keys(`${repo}:*`);
-    const count = txsData.length;
+    const RedisListKey = repo.concat(':Queue');
+    const count = redisClient.LLEN(RedisListKey);
 
     logger.log(`${repo} repo count: ${count}`);
 

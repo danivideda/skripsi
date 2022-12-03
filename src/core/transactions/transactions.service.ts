@@ -41,16 +41,6 @@ export class TransactionsService {
       }
     }
 
-    if ((await repository.getCount()) >= 5) {
-      return utils.createResponse(
-        HttpStatus.CREATED,
-        'Transaction created and processed',
-        {
-          createdTransaction,
-        },
-      );
-    }
-
     logger.log('Transaction created');
     return utils.createResponse(HttpStatus.CREATED, 'Transaction created', {
       createdTransaction,
