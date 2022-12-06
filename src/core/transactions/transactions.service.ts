@@ -23,14 +23,14 @@ export class TransactionsService {
 
   async sendTransaction(body: SendTransactionDto) {
     const { logger, utils, repository } = this.init();
-    const { stakeAddress, destinationAddress, utxos, lovelace } = body;
+    const { stakeAddressHex, destinationAddressBech32, utxos, lovelace } = body;
 
     let createdTransaction;
 
     try {
       createdTransaction = await repository.createTransaction(
-        { destinationAddress, utxos, lovelace },
-        stakeAddress,
+        { destinationAddressBech32, utxos, lovelace },
+        stakeAddressHex,
       );
     } catch (error) {
       logger.error(error);

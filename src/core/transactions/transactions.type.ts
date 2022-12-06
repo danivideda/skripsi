@@ -1,5 +1,5 @@
 export type CreateTransactionData = {
-  destinationAddress: string,
-  utxos: string,
+  destinationAddressBech32: string,
+  utxos: Array<string>,
   lovelace: number
 }

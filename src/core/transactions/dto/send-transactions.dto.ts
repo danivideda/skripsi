@@ -1,17 +1,18 @@
-import { IsInt, IsNotEmpty, IsString } from 'class-validator';
+import { ArrayContains, IsArray, IsInt, IsNotEmpty, IsString } from 'class-validator';
 
 export class SendTransactionDto {
   @IsNotEmpty()
   @IsString()
-  public stakeAddress: string;
+  public stakeAddressHex: string;
 
   @IsNotEmpty()
   @IsString()
-  public destinationAddress: string;
+  public destinationAddressBech32: string;
 
   @IsNotEmpty()
-  @IsString()
-  public utxos: string;
+  @IsArray()
+  @IsString({each: true})
+  public utxos: Array<string>;
 
   @IsNotEmpty()
   @IsInt()
