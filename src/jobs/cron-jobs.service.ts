@@ -49,7 +49,7 @@ export class CronJobsService {
 
     // Collect Transaction object from Redis
     transactionIdList = await this.redisClient.lRange(transactionQueueKey, 0, 2);
-    transactionIdList.forEach(async (transactionId, index) => {
+    for (const transactionId of transactionIdList) {
       const transactionObj = (
         await this.redisClient
           .multi()
@@ -60,46 +60,47 @@ export class CronJobsService {
       )[0];
 
       // Deconstruct the RedisCommandRawReply type object
-      const destinationAddressBech32 =
-        transactionObj?.['destinationAddressBech32' as keyof typeof transactionObj];
-      const utxos = new Array(transactionObj?.['utxos' as keyof typeof transactionObj]);
+      const destinationAddressBech32: string =
+        <string><unknown>transactionObj?.['destinationAddressBech32' as keyof typeof transactionObj];
+      const utxos = <Array<any>><unknown>transactionObj?.['utxos' as keyof typeof transactionObj];
       const lovelace = Number(transactionObj?.['lovelace' as keyof typeof transactionObj]);
 
       // Construct the inputs and outputs
       let totalInputLovelace: number = 0;
       let changeAddressHex: BufferLike = '';
-      let inputs: any
-      utxos.forEach(async (item, index) => {
+
+      for (const item of utxos) {
         const input = (await this.utilsService.decodeCbor(item?.toString() as keyof BufferLike))[0];
         const output = (
           await this.utilsService.decodeCbor(item?.toString() as keyof BufferLike)
         )[1];
         inputs.push(input);
 
-        this.logger.debug(`Inputs: ${inputs.length == 0}`);
-        console.log(inputs);
-
         totalInputLovelace += Number(output[1]);
         changeAddressHex = output[0];
-      });
+      }
 
       outputs.push([
         this.utilsService.decodeBech32(destinationAddressBech32!.toString()),
         Number(lovelace),
       ]);
       outputs.push([changeAddressHex, totalInputLovelace - lovelace]);
-    });
-
-    let cborHex: Buffer;
+    }
 
     transactionBody.set(0, inputs).set(1, outputs).set(2, maxPossibleFee).set(3, slotTTL);
-    cborHex = await this.utilsService.encodeCbor(transactionBody);
+    const transactionFullCborHex: Buffer = await this.utilsService.encodeCbor([
+      transactionBody,
+      {},
+      true,
+      null,
+    ]);
 
-    calculatedFee = minFee + feePerByte * Number(cborHex.byteLength);
-    transactionBody.set(0, inputs).set(1, outputs).set(2, calculatedFee).set(3, slotTTL);
-    cborHex = await this.utilsService.encodeCbor(transactionBody);
+    this.logger.log(`Batched every 10 seconds: ${transactionFullCborHex.toString('hex')}`);
 
-    this.logger.log(`Cron job handled every 10 seconds: ${cborHex.toString()}`);
-    console.log(transactionBody);
+    /** TODO
+     * 1. Create TxID of the batched Tx
+     * 2. Save into Redis
+     * 3. Calculate fee when all participants already signed the Tx
+     */
   }
 }
