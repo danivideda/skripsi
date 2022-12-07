@@ -20,16 +20,14 @@ export class CronJobsService {
 
   @Cron(CronExpression.EVERY_10_SECONDS)
   async handleCron() {
-    const transactionQueueKey = 'Transactions:Queue';
-    const transactionCountInQueue = await this.redisClient.lLen(transactionQueueKey);
+    const RedisQueueKey = 'Transactions:Queue';
+    const transactionCountInQueue = await this.redisClient.lLen(RedisQueueKey);
     const batchLimit = Number(this.configService.getOrThrow('BATCHED_TRANSACTION_LIMIT'));
     if (transactionCountInQueue < Number(this.configService.getOrThrow('BATCHED_TRANSACTION_LIMIT'))) {
       return this.logger.verbose(`Need at least ${batchLimit} in Queue. Current: ${transactionCountInQueue}`);
     }
 
-    const batchesRepoKey = 'Batches:';
     let transactionIdList: Array<string> = [];
-    let transactionObjList = [];
 
     // Transaction Body ----
     const latestEpoch = (await this.blockfrostClient.epochsLatest()).epoch;
@@ -38,9 +36,8 @@ export class CronJobsService {
     const feePerByte = Number(latestEpochParameters.min_fee_a);
     const maxTxSize = Number(latestEpochParameters.max_tx_size);
     const maxPossibleFee = minFee + feePerByte * maxTxSize;
-    const slotTTL: Number =
-      Number(this.configService.getOrThrow('TRANSACTIONS_TIME_TO_LIVE')) +
-      Number((await this.blockfrostClient.blocksLatest()).slot);
+    const timeToLiveSecond = Number(this.configService.getOrThrow('TRANSACTIONS_TIME_TO_LIVE'));
+    const slotTTL: Number = timeToLiveSecond + Number((await this.blockfrostClient.blocksLatest()).slot);
 
     let transactionBody = new Map();
     let inputs: Array<any> = [];
@@ -49,14 +46,14 @@ export class CronJobsService {
     // end ----
 
     // Collect Transaction object from Redis
-    transactionIdList = await this.redisClient.lRange(transactionQueueKey, 0, batchLimit - 1);
+    transactionIdList = await this.redisClient.lRange(RedisQueueKey, 0, batchLimit - 1);
     for (const transactionId of transactionIdList) {
       const transactionObj = (
         await this.redisClient
           .multi()
           .json.get(transactionId.toString())
           .json.del(transactionId.toString())
-          .lPop(transactionQueueKey)
+          .lPop(RedisQueueKey)
           .exec()
       )[0];
 
@@ -99,8 +96,29 @@ export class CronJobsService {
      */
 
     // Create TxID
-    const cborHexTransactionBody = await this.utilsService.encodeCbor(transactionBody);
-    const txId = this.utilsService.blake2b256(cborHexTransactionBody);
-    this.logger.verbose(`CborHex of only TxBody: ${cborHexTransactionBody.toString('hex')}`, `TxId: ${txId}`);
+    const transactionBodyCborHex = await this.utilsService.encodeCbor(transactionBody);
+    const txId = this.utilsService.blake2b256(transactionBodyCborHex);
+
+    // Save into Redis
+    const addressList: Array<string> = [];
+    for (const transactionId of transactionIdList) {
+      addressList.push(transactionId.slice('Transactions:'.length - 1, -1));
+    }
+    const jsonData = {
+      transactionFullCborHex: transactionFullCborHex.toString('hex'),
+      addressList,
+    };
+    const RedisBatchesKey = `Batches:${txId}`;
+    const setToRedis = await this.redisClient
+      .multi()
+      .json.SET(RedisBatchesKey, '$', jsonData)
+      .expire(RedisBatchesKey, timeToLiveSecond)
+      .exec();
+
+    this.logger.verbose(
+      `CborHex of only TxBody: ${transactionBodyCborHex.toString('hex')}`,
+      `TxId: ${txId}`,
+      `Saved to Redis: ${setToRedis}`,
+    );
   }
 }
