@@ -22,10 +22,7 @@ export class TransactionsRepository {
     this.repo = 'Transactions';
   }
 
-  async createTransaction(
-    transaction: CreateTransactionData,
-    stakeAddress: string,
-  ) {
+  async createTransaction(transaction: CreateTransactionData, stakeAddress: string) {
     const { redisClient, logger, repo } = this.init();
     const RedisJSONKey = repo.concat(':', stakeAddress);
     const RedisListKey = repo.concat(':Queue');
@@ -34,11 +31,7 @@ export class TransactionsRepository {
       throw new RedisKeyExistsError(`Key '${RedisJSONKey}' already exists.`);
     }
 
-    await redisClient
-      .multi()
-      .json.SET(RedisJSONKey, '$', transaction)
-      .RPUSH(RedisListKey, RedisJSONKey)
-      .exec();
+    await redisClient.multi().json.SET(RedisJSONKey, '$', transaction).RPUSH(RedisListKey, RedisJSONKey).exec();
 
     const newTransaction = await redisClient.json.GET(RedisJSONKey);
 

@@ -11,7 +11,7 @@ export class SendTransactionDto {
 
   @IsNotEmpty()
   @IsArray()
-  @IsString({each: true})
+  @IsString({ each: true })
   public utxos: Array<string>;
 
   @IsNotEmpty()

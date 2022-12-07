@@ -60,9 +60,10 @@ export class CronJobsService {
       )[0];
 
       // Deconstruct the RedisCommandRawReply type object
-      const destinationAddressBech32: string =
-        <string><unknown>transactionObj?.['destinationAddressBech32' as keyof typeof transactionObj];
-      const utxos = <Array<any>><unknown>transactionObj?.['utxos' as keyof typeof transactionObj];
+      const destinationAddressBech32: string = <string>(
+        (<unknown>transactionObj?.['destinationAddressBech32' as keyof typeof transactionObj])
+      );
+      const utxos = <Array<any>>(<unknown>transactionObj?.['utxos' as keyof typeof transactionObj]);
       const lovelace = Number(transactionObj?.['lovelace' as keyof typeof transactionObj]);
 
       // Construct the inputs and outputs
@@ -71,29 +72,19 @@ export class CronJobsService {
 
       for (const item of utxos) {
         const input = (await this.utilsService.decodeCbor(item?.toString() as keyof BufferLike))[0];
-        const output = (
-          await this.utilsService.decodeCbor(item?.toString() as keyof BufferLike)
-        )[1];
+        const output = (await this.utilsService.decodeCbor(item?.toString() as keyof BufferLike))[1];
         inputs.push(input);
 
         totalInputLovelace += Number(output[1]);
         changeAddressHex = output[0];
       }
 
-      outputs.push([
-        this.utilsService.decodeBech32(destinationAddressBech32!.toString()),
-        Number(lovelace),
-      ]);
+      outputs.push([this.utilsService.decodeBech32(destinationAddressBech32!.toString()), Number(lovelace)]);
       outputs.push([changeAddressHex, totalInputLovelace - lovelace]);
     }
 
     transactionBody.set(0, inputs).set(1, outputs).set(2, maxPossibleFee).set(3, slotTTL);
-    const transactionFullCborHex: Buffer = await this.utilsService.encodeCbor([
-      transactionBody,
-      {},
-      true,
-      null,
-    ]);
+    const transactionFullCborHex: Buffer = await this.utilsService.encodeCbor([transactionBody, {}, true, null]);
 
     this.logger.log(`Batched every 10 seconds: ${transactionFullCborHex.toString('hex')}`);
 

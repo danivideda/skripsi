@@ -4,7 +4,7 @@ import { createClient } from 'redis';
 import { REDIS_CLIENT } from 'src/common/constants';
 
 @Module({
-  imports: [ConfigModule]
+  imports: [ConfigModule],
 })
 export class RedisModule {
   public static async registerAsync(): Promise<DynamicModule> {
@@ -22,7 +22,7 @@ export class RedisModule {
 
         await redis.connect();
         // const client = await new Client().use(redis);
-        const client = redis
+        const client = redis;
         return client;
       },
       inject: [ConfigService],

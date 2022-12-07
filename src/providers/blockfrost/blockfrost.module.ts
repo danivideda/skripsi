@@ -8,7 +8,7 @@ import { BLOCKFROST_CLIENT } from 'src/common/constants';
 })
 export class BlockfrostModule {
   public static register(): DynamicModule {
-    // Create blockfrost provider 
+    // Create blockfrost provider
     const blockfrostProvider: Provider = {
       provide: BLOCKFROST_CLIENT,
       useFactory: (config: ConfigService) => {
