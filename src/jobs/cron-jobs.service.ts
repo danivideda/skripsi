@@ -21,9 +21,10 @@ export class CronJobsService {
   @Cron(CronExpression.EVERY_10_SECONDS)
   async handleCron() {
     const transactionQueueKey = 'Transactions:Queue';
-    const count = await this.redisClient.lLen(transactionQueueKey);
-    if (count < 3) {
-      return this.logger.log(`Not enough transaction in Queue. Current: ${count}`);
+    const transactionCountInQueue = await this.redisClient.lLen(transactionQueueKey);
+    const batchLimit = Number(this.configService.getOrThrow('BATCHED_TRANSACTION_LIMIT'));
+    if (transactionCountInQueue < Number(this.configService.getOrThrow('BATCHED_TRANSACTION_LIMIT'))) {
+      return this.logger.verbose(`Need at least ${batchLimit} in Queue. Current: ${transactionCountInQueue}`);
     }
 
     const batchesRepoKey = 'Batches:';
@@ -34,7 +35,7 @@ export class CronJobsService {
     const latestEpoch = (await this.blockfrostClient.epochsLatest()).epoch;
     const latestEpochParameters = await this.blockfrostClient.epochsParameters(latestEpoch);
     const minFee = Number(latestEpochParameters.min_fee_b);
-    const feePerByte = Number(latestEpochParameters.min_fee_b);
+    const feePerByte = Number(latestEpochParameters.min_fee_a);
     const maxTxSize = Number(latestEpochParameters.max_tx_size);
     const maxPossibleFee = minFee + feePerByte * maxTxSize;
     const slotTTL: Number =
@@ -48,7 +49,7 @@ export class CronJobsService {
     // end ----
 
     // Collect Transaction object from Redis
-    transactionIdList = await this.redisClient.lRange(transactionQueueKey, 0, 2);
+    transactionIdList = await this.redisClient.lRange(transactionQueueKey, 0, batchLimit - 1);
     for (const transactionId of transactionIdList) {
       const transactionObj = (
         await this.redisClient
@@ -86,12 +87,20 @@ export class CronJobsService {
     transactionBody.set(0, inputs).set(1, outputs).set(2, maxPossibleFee).set(3, slotTTL);
     const transactionFullCborHex: Buffer = await this.utilsService.encodeCbor([transactionBody, {}, true, null]);
 
-    this.logger.log(`Batched every 10 seconds: ${transactionFullCborHex.toString('hex')}`);
+    this.logger.verbose(
+      `Batched every 10 seconds: ${transactionFullCborHex.toString('hex')}`,
+      `Max possible fee: ${maxPossibleFee}`,
+    );
 
     /** TODO
-     * 1. Create TxID of the batched Tx
+     * 1. Create TxID of the batched TxQ - DONE -
      * 2. Save into Redis
      * 3. Calculate fee when all participants already signed the Tx
      */
+
+    // Create TxID
+    const cborHexTransactionBody = await this.utilsService.encodeCbor(transactionBody);
+    const txId = this.utilsService.blake2b256(cborHexTransactionBody);
+    this.logger.verbose(`CborHex of only TxBody: ${cborHexTransactionBody.toString('hex')}`, `TxId: ${txId}`);
   }
 }
