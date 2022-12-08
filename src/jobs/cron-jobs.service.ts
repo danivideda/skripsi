@@ -24,7 +24,7 @@ export class CronJobsService {
     const transactionCountInQueue = await this.redisClient.lLen(RedisQueueKey);
     const batchLimit = Number(this.configService.getOrThrow('BATCHED_TRANSACTION_LIMIT'));
     if (transactionCountInQueue < Number(this.configService.getOrThrow('BATCHED_TRANSACTION_LIMIT'))) {
-      return this.logger.verbose(`Need at least ${batchLimit} in Queue. Current: ${transactionCountInQueue}`);
+      return this.logger.debug(`Need at least ${batchLimit} in Queue. Current: ${transactionCountInQueue}`);
     }
 
     let transactionIdList: Array<string> = [];
@@ -63,25 +63,23 @@ export class CronJobsService {
 
     for (const transactionObj of transactionObjList) {
       // Deconstruct the RedisCommandRawReply type object
-      const destinationAddressBech32: string = <string>(
-        (<unknown>transactionObj?.['destinationAddressBech32' as keyof typeof transactionObj])
-      );
-      const utxos = <Array<any>>(<unknown>transactionObj?.['utxos' as keyof typeof transactionObj]);
-      const lovelace = Number(transactionObj?.['lovelace' as keyof typeof transactionObj]);
+      const destinationAddressBech32: string = transactionObj['destinationAddressBech32'];
+      const utxos = transactionObj['utxos'];
+      const lovelace = Number(transactionObj['lovelace']);
 
       // Construct the inputs and outputs
       let totalInputLovelace: number = 0;
       let changeAddrListHex: Array<BufferLike> = [];
       for (const item of utxos) {
-        const input: Array<any> = (await this.utilsService.decodeCbor(item?.toString() as keyof BufferLike))[0];
-        const output: Array<any> = (await this.utilsService.decodeCbor(item?.toString() as keyof BufferLike))[1];
+        const input: Array<any> = (await this.utilsService.decodeCbor(item))[0];
+        const output: Array<any> = (await this.utilsService.decodeCbor(item))[1];
         inputs.push(input);
 
         totalInputLovelace += Number(output[1]);
         changeAddrListHex.push(output[0]);
       }
 
-      outputs.push([this.utilsService.decodeBech32(destinationAddressBech32!.toString()), Number(lovelace)]);
+      outputs.push([this.utilsService.decodeBech32(destinationAddressBech32), Number(lovelace)]);
       outputs.push([changeAddrListHex[changeAddrListHex.length - 1], totalInputLovelace - lovelace]);
       witnessSetCount = witnessSetCount + Number(new Set(changeAddrListHex).size);
     }
@@ -89,30 +87,58 @@ export class CronJobsService {
     transactionBody.set(0, inputs).set(1, outputs).set(2, maxPossibleFee).set(3, slotTTL);
 
     // Construct Witnesses dummy
-    const witnessSetDummy = new Map().set(0, []);
     let witnessList = [];
     for (let i = 0; i < witnessSetCount; i++) {
-      const vkey = Buffer.alloc(32);
-      const signature = Buffer.alloc(64);
+      const vkey = Buffer.alloc(32, 'vkey-dummy-bytes');
+      const signature = Buffer.alloc(64, 'signature-dummy-bytes');
+      console.log(vkey, signature);
       witnessList.push([vkey, signature]);
     }
-    const transactionFullCborHex: Buffer = await this.utilsService.encodeCbor([
+    const witnessSetDummy: Map<number, any> = new Map().set(0, witnessList);
+    let transactionFullCborHex: Buffer = await this.utilsService.encodeCbor([
       transactionBody,
       witnessSetDummy,
       true,
       null,
     ]);
 
-    this.logger.verbose(
-      `Batched every 10 seconds: ${transactionFullCborHex.toString('hex')}`,
-      `Max possible fee: ${maxPossibleFee}`,
-    );
+    // Calculate fees after including the witness set dummy
+    const totalFee: number = minFee + feePerByte * transactionFullCborHex.byteLength;
+    const calculatedTotalFee: number =
+      totalFee % transactionIdList.length == 0
+        ? totalFee
+        : (Math.trunc(totalFee / transactionIdList.length) + 1) * transactionIdList.length;
+    const feePerParticipant: number = Math.trunc(calculatedTotalFee / transactionIdList.length);
 
-    /** TODO
-     * 1. Create TxID of the batched TxQ - DONE -
-     * 2. Save into Redis
-     * 3. Calculate fee when all participants already signed the Tx
-     */
+    // Repeat creating the Transaction Body set
+    for (const transactionObj of transactionObjList) {
+      // Deconstruct the RedisCommandRawReply type object
+      const destinationAddressBech32: string = transactionObj['destinationAddressBech32'];
+      const utxos = transactionObj['utxos'];
+      const lovelace = Number(transactionObj['lovelace']);
+
+      // Construct the inputs and outputs
+      let totalInputLovelace: number = 0;
+      let changeAddrListHex: Array<BufferLike> = [];
+      for (const item of utxos) {
+        const input: Array<any> = (await this.utilsService.decodeCbor(item))[0];
+        const output: Array<any> = (await this.utilsService.decodeCbor(item))[1];
+        inputs.push(input);
+
+        totalInputLovelace += Number(output[1]);
+        changeAddrListHex.push(output[0]);
+      }
+
+      outputs.push([this.utilsService.decodeBech32(destinationAddressBech32), Number(lovelace)]);
+      outputs.push([
+        changeAddrListHex[changeAddrListHex.length - 1],
+        totalInputLovelace - lovelace - feePerParticipant,
+      ]);
+      witnessSetCount = witnessSetCount + Number(new Set(changeAddrListHex).size);
+    }
+
+    transactionBody.set(0, inputs).set(1, outputs).set(2, calculatedTotalFee).set(3, slotTTL);
+    transactionFullCborHex = await this.utilsService.encodeCbor([transactionBody, witnessSetDummy, true, null]);
 
     // Create TxID
     const transactionBodyCborHex = await this.utilsService.encodeCbor(transactionBody);
@@ -134,9 +160,12 @@ export class CronJobsService {
       .expire(RedisBatchesKey, timeToLiveSecond)
       .exec();
 
-    this.logger.verbose(
-      `CborHex of only TxBody: ${transactionBodyCborHex.toString('hex')}`,
+    this.logger.debug(
+      `CborHex Full Transaction: ${transactionFullCborHex.toString('hex')}`,
       `TxId: ${txId}`,
+      `Max Possible Fee: ${maxPossibleFee}`,
+      `Calculated Total Fee: ${calculatedTotalFee}`,
+      `Fee per participant: ${feePerParticipant}`,
       `Saved to Redis: ${setToRedis}`,
     );
   }

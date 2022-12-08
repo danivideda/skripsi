@@ -1,7 +1,28 @@
 {
-  "prompt": "await api.getUtxos('1b0000000059682F00')",
-  "response": [
-    "828258201378ebb12a2eb28dba2b4a2fafd1f4e629980024ae4f304c8526c206f64f7bab008258390065197a7be4b926edd80f110f3120e52fe6c41b03cd2d93bd44d2690c2f6d1a60b7ab32567b76b1d34e2afb544b3b8db70667ad2841e7820e1a4a4d3c53",
-    "82825820d3ed1f686101a0a6c680d70e2478e547a07878dda6b52f3175c599a84ee4558e018258390055ca14efeefd5b873d38d67f0d138d91f0fe4827f08cc1f45135554d2f6d1a60b7ab32567b76b1d34e2afb544b3b8db70667ad2841e7820e1a4475f733"
-  ]
+  "1": {
+    "stakeAddress": "stake_test1uz7j0w8gu4smpze08hma8wlk0c4drqctqdrz57fjwledsdqlrhls4",
+    "prompt": "await api.getUtxos('1b0000000008F0D180')",
+    "response": [
+      "82825820e320e6beca649f5c0b5aa28e5d8c3611a447433c77e9209e4634346a3cba328a00825839000b5911e6843813fa2cd6a7435edcdeac9811aa2f899b3af7d15b9b01bd27b8e8e561b08b2f3df7d3bbf67e2ad1830b03462a793277f2d8341a05f5e100",
+      "82825820a0adb00516e76507dd157a3d3ca2213bde4bb6f3ec970e78ee3d54f2e95d54790082583900d51b497aa0c33bdab598d8f1d1225fdcbb0c7237c174ebef4dc62405bd27b8e8e561b08b2f3df7d3bbf67e2ad1830b03462a793277f2d8341a02faf080"
+    ],
+    "description": [
+      "The wallet at the time have 3 UTXOs:",
+      ["50 ADA", "50 ADA", "100 ADA"],
+      "I then ask for 150 ADA. And it only gave me 2 UTXO.",
+      "So, I need to account for the fee too when I'm making transaction"
+    ]
+  },
+  "2": {
+    "stakeAddress": "stake_test1uz7j0w8gu4smpze08hma8wlk0c4drqctqdrz57fjwledsdqlrhls4",
+    "prompt": "await api.getUtxos('1b00000000090013C0')",
+    "response": [
+      "82825820e320e6beca649f5c0b5aa28e5d8c3611a447433c77e9209e4634346a3cba328a00825839000b5911e6843813fa2cd6a7435edcdeac9811aa2f899b3af7d15b9b01bd27b8e8e561b08b2f3df7d3bbf67e2ad1830b03462a793277f2d8341a05f5e100",
+      "82825820a0adb00516e76507dd157a3d3ca2213bde4bb6f3ec970e78ee3d54f2e95d54790082583900d51b497aa0c33bdab598d8f1d1225fdcbb0c7237c174ebef4dc62405bd27b8e8e561b08b2f3df7d3bbf67e2ad1830b03462a793277f2d8341a02faf080",
+      "8282582024e07340b7a6ccd22891ffbe15021841d29e18bba7f6a0413bf9f58d7db1ccbe00825839005f4d5777b3e94cb38cc35c8b559f351adcd647589b2e22b6c835660cbd27b8e8e561b08b2f3df7d3bbf67e2ad1830b03462a793277f2d8341a02faf080"
+    ],
+    "description": [
+      "I changed the requesting amount to 151 ADA. And now it gave me 3 UTXO."
+    ]
+  }
 }
