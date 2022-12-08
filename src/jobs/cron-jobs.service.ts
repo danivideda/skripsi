@@ -111,6 +111,9 @@ export class CronJobsService {
     const feePerParticipant: number = Math.trunc(calculatedTotalFee / transactionIdList.length);
 
     // Repeat creating the Transaction Body set
+    transactionBody = new Map();
+    inputs = [];
+    outputs = [];
     for (const transactionObj of transactionObjList) {
       // Deconstruct the RedisCommandRawReply type object
       const destinationAddressBech32: string = transactionObj['destinationAddressBech32'];
@@ -138,7 +141,7 @@ export class CronJobsService {
     }
 
     transactionBody.set(0, inputs).set(1, outputs).set(2, calculatedTotalFee).set(3, slotTTL);
-    transactionFullCborHex = await this.utilsService.encodeCbor([transactionBody, witnessSetDummy, true, null]);
+    transactionFullCborHex = await this.utilsService.encodeCbor([transactionBody, {}, true, null]);
 
     // Create TxID
     const transactionBodyCborHex = await this.utilsService.encodeCbor(transactionBody);
