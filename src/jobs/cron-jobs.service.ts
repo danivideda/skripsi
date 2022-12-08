@@ -28,6 +28,7 @@ export class CronJobsService {
     }
 
     let transactionIdList: Array<string> = [];
+    let transactionObjList: Array<any> = [];
 
     // Transaction Body ----
     const latestEpoch = (await this.blockfrostClient.epochsLatest()).epoch;
@@ -48,15 +49,19 @@ export class CronJobsService {
     // Collect Transaction object from Redis
     transactionIdList = await this.redisClient.lRange(RedisQueueKey, 0, batchLimit - 1);
     for (const transactionId of transactionIdList) {
-      const transactionObj = (
-        await this.redisClient
-          .multi()
-          .json.get(transactionId.toString())
-          .json.del(transactionId.toString())
-          .lPop(RedisQueueKey)
-          .exec()
-      )[0];
+      transactionObjList.push(
+        (
+          await this.redisClient
+            .multi()
+            .json.get(transactionId.toString())
+            .json.del(transactionId.toString())
+            .lPop(RedisQueueKey)
+            .exec()
+        )[0],
+      );
+    }
 
+    for (const transactionObj of transactionObjList) {
       // Deconstruct the RedisCommandRawReply type object
       const destinationAddressBech32: string = <string>(
         (<unknown>transactionObj?.['destinationAddressBech32' as keyof typeof transactionObj])
