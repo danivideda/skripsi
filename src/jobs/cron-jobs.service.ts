@@ -42,7 +42,7 @@ export class CronJobsService {
     let transactionBody = new Map();
     let inputs: Array<any> = [];
     let outputs: Array<any> = [];
-    let calculatedFee: number = 0;
+    let witnessSetCount: number = 0;
     // end ----
 
     // Collect Transaction object from Redis
@@ -66,23 +66,37 @@ export class CronJobsService {
 
       // Construct the inputs and outputs
       let totalInputLovelace: number = 0;
-      let changeAddressHex: BufferLike = '';
-
+      let changeAddrListHex: Array<BufferLike> = [];
       for (const item of utxos) {
-        const input = (await this.utilsService.decodeCbor(item?.toString() as keyof BufferLike))[0];
-        const output = (await this.utilsService.decodeCbor(item?.toString() as keyof BufferLike))[1];
+        const input: Array<any> = (await this.utilsService.decodeCbor(item?.toString() as keyof BufferLike))[0];
+        const output: Array<any> = (await this.utilsService.decodeCbor(item?.toString() as keyof BufferLike))[1];
         inputs.push(input);
 
         totalInputLovelace += Number(output[1]);
-        changeAddressHex = output[0];
+        changeAddrListHex.push(output[0]);
       }
 
       outputs.push([this.utilsService.decodeBech32(destinationAddressBech32!.toString()), Number(lovelace)]);
-      outputs.push([changeAddressHex, totalInputLovelace - lovelace]);
+      outputs.push([changeAddrListHex[changeAddrListHex.length - 1], totalInputLovelace - lovelace]);
+      witnessSetCount = witnessSetCount + Number(new Set(changeAddrListHex).size);
     }
 
     transactionBody.set(0, inputs).set(1, outputs).set(2, maxPossibleFee).set(3, slotTTL);
-    const transactionFullCborHex: Buffer = await this.utilsService.encodeCbor([transactionBody, {}, true, null]);
+
+    // Construct Witnesses dummy
+    const witnessSetDummy = new Map().set(0, []);
+    let witnessList = [];
+    for (let i = 0; i < witnessSetCount; i++) {
+      const vkey = Buffer.alloc(32);
+      const signature = Buffer.alloc(64);
+      witnessList.push([vkey, signature]);
+    }
+    const transactionFullCborHex: Buffer = await this.utilsService.encodeCbor([
+      transactionBody,
+      witnessSetDummy,
+      true,
+      null,
+    ]);
 
     this.logger.verbose(
       `Batched every 10 seconds: ${transactionFullCborHex.toString('hex')}`,

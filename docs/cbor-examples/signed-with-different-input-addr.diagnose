@@ -1,0 +1,92 @@
+Size: 326 Bytes
+84a40082825820003c8dd3373e2616843a7f0afa14f834dc9755691907975cc6af161cbfb791f0058258203ab419ca3d54efa1ec7242aad46dc61698f7b04b35e4f0e03bd03aabd3b826b407018282583900c3348fd50b7da3bcfce47053a3c08054b3ddabd5ca5a1451b148fec1bd27b8e8e561b08b2f3df7d3bbf67e2ad1830b03462a793277f2d8341a0098968082583900178a632d776dea6fc10f22c8339ccf331ded4b9107b7ed9db69e69af2f6d1a60b7ab32567b76b1d34e2afb544b3b8db70667ad2841e7820e1a0593eb43021a000297ad031a00e19eaba10081825820b2982a84c122a6f6def8ec6285d73f54e217a8db881500d91f4d99a60d8ea8555840572005fc91907f322a144a21eb0996749529333af9a58e96da5cdee3c8aa6a9838393f19c5201c6ef8f3117cff12614d25bf5095ebc48e252b6569349440f102f5f6
+
+Diagnostic:
+[
+	{
+		0: [
+			[
+				h'003c8dd3373e2616843a7f0afa14f834dc9755691907975cc6af161cbfb791f0',
+				5
+			],
+			[
+				h'3ab419ca3d54efa1ec7242aad46dc61698f7b04b35e4f0e03bd03aabd3b826b4',
+				7
+			]
+		],
+		1: [
+			[
+				h'00c3348fd50b7da3bcfce47053a3c08054b3ddabd5ca5a1451b148fec1bd27b8e8e561b08b2f3df7d3bbf67e2ad1830b03462a793277f2d834',
+				10000000
+			],
+			[
+				h'00178a632d776dea6fc10f22c8339ccf331ded4b9107b7ed9db69e69af2f6d1a60b7ab32567b76b1d34e2afb544b3b8db70667ad2841e7820e',
+				93580099
+			]
+		],
+		2: 169901,
+		3: 14786219
+	},
+	{
+		0: [
+			[
+				h'b2982a84c122a6f6def8ec6285d73f54e217a8db881500d91f4d99a60d8ea855',
+				h'572005fc91907f322a144a21eb0996749529333af9a58e96da5cdee3c8aa6a9838393f19c5201c6ef8f3117cff12614d25bf5095ebc48e252b6569349440f102'
+			]
+		]
+	},
+	true,
+	{
+		
+	}
+]
+
+
+Commented:
+  84                -- Array, 4 items
+    a4              -- [0], Map, 4 pairs
+      00            -- {Key:0}, 0
+      82            -- {Val:0}, Array, 2 items
+        82          -- [0], Array, 2 items
+          58        -- Bytes, length next 1 byte
+            20      -- Bytes, length: 32
+              003c8dd3373e2616843a7f0afa14f834dc9755691907975cc6af161cbfb791f0 -- [0], 003c8dd3373e2616843a7f0afa14f834dc9755691907975cc6af161cbfb791f0
+          05        -- [1], 5
+        82          -- [1], Array, 2 items
+          58        -- Bytes, length next 1 byte
+            20      -- Bytes, length: 32
+              3ab419ca3d54efa1ec7242aad46dc61698f7b04b35e4f0e03bd03aabd3b826b4 -- [0], 3ab419ca3d54efa1ec7242aad46dc61698f7b04b35e4f0e03bd03aabd3b826b4
+          07        -- [1], 7
+      01            -- {Key:1}, 1
+      82            -- {Val:1}, Array, 2 items
+        82          -- [0], Array, 2 items
+          58        -- Bytes, length next 1 byte
+            39      -- Bytes, length: 57
+              00c3348fd50b7da3bcfce47053a3c08054b3ddabd5ca5a1451b148fec1bd27b8e8e561b08b2f3df7d3bbf67e2ad1830b03462a793277f2d834 -- [0], 00c3348fd50b7da3bcfce47053a3c08054b3ddabd5ca5a1451b148fec1bd27b8e8e561b08b2f3df7d3bbf67e2ad1830b03462a793277f2d834
+          1a        -- Positive number, next 4 bytes
+            00989680 -- [1], 10000000
+        82          -- [1], Array, 2 items
+          58        -- Bytes, length next 1 byte
+            39      -- Bytes, length: 57
+              00178a632d776dea6fc10f22c8339ccf331ded4b9107b7ed9db69e69af2f6d1a60b7ab32567b76b1d34e2afb544b3b8db70667ad2841e7820e -- [0], 00178a632d776dea6fc10f22c8339ccf331ded4b9107b7ed9db69e69af2f6d1a60b7ab32567b76b1d34e2afb544b3b8db70667ad2841e7820e
+          1a        -- Positive number, next 4 bytes
+            0593eb43 -- [1], 93580099
+      02            -- {Key:2}, 2
+      1a            -- Positive number, next 4 bytes
+        000297ad    -- {Val:2}, 169901
+      03            -- {Key:3}, 3
+      1a            -- Positive number, next 4 bytes
+        00e19eab    -- {Val:3}, 14786219
+    a1              -- [1], Map, 1 pair
+      00            -- {Key:0}, 0
+      81            -- {Val:0}, Array, 1 item
+        82          -- [0], Array, 2 items
+          58        -- Bytes, length next 1 byte
+            20      -- Bytes, length: 32
+              b2982a84c122a6f6def8ec6285d73f54e217a8db881500d91f4d99a60d8ea855 -- [0], b2982a84c122a6f6def8ec6285d73f54e217a8db881500d91f4d99a60d8ea855
+          58        -- Bytes, length next 1 byte
+            40      -- Bytes, length: 64
+              572005fc91907f322a144a21eb0996749529333af9a58e96da5cdee3c8aa6a9838393f19c5201c6ef8f3117cff12614d25bf5095ebc48e252b6569349440f102 -- [1], 572005fc91907f322a144a21eb0996749529333af9a58e96da5cdee3c8aa6a9838393f19c5201c6ef8f3117cff12614d25bf5095ebc48e252b6569349440f102
+    f5              -- [2], true
+    f6              -- [3], {}
+0x84a40082825820003c8dd3373e2616843a7f0afa14f834dc9755691907975cc6af161cbfb791f0058258203ab419ca3d54efa1ec7242aad46dc61698f7b04b35e4f0e03bd03aabd3b826b407018282583900c3348fd50b7da3bcfce47053a3c08054b3ddabd5ca5a1451b148fec1bd27b8e8e561b08b2f3df7d3bbf67e2ad1830b03462a793277f2d8341a0098968082583900178a632d776dea6fc10f22c8339ccf331ded4b9107b7ed9db69e69af2f6d1a60b7ab32567b76b1d34e2afb544b3b8db70667ad2841e7820e1a0593eb43021a000297ad031a00e19eaba10081825820b2982a84c122a6f6def8ec6285d73f54e217a8db881500d91f4d99a60d8ea8555840572005fc91907f322a144a21eb0996749529333af9a58e96da5cdee3c8aa6a9838393f19c5201c6ef8f3117cff12614d25bf5095ebc48e252b6569349440f102f5f6
