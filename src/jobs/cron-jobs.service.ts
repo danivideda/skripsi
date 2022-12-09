@@ -148,13 +148,17 @@ export class CronJobsService {
     const txId = this.utilsService.blake2b256(transactionBodyCborHex);
 
     // Save into Redis
-    const addressList: Array<string> = [];
+    const stakeAddressList: Array<string> = [];
     for (const transactionId of transactionIdList) {
-      addressList.push(transactionId.slice('Transactions:'.length - 1, -1));
+      stakeAddressList.push(transactionId.slice('Transactions:'.length - 1, -1));
     }
+    const witnessSignatureList: Array<string> = [];
+    const signedList: Array<string> = [];
     const jsonData = {
+      stakeAddressList,
       transactionFullCborHex: transactionFullCborHex.toString('hex'),
-      addressList,
+      witnessSignatureList,
+      signedList
     };
     const RedisBatchesKey = `Batches:${txId}`;
     const setToRedis = await this.redisClient
