@@ -6,14 +6,12 @@ import { TransactionsRepository } from './transactions.repository';
 
 @Injectable()
 export class TransactionsService {
-  private readonly logger: Logger;
+  private readonly logger: Logger = new Logger(TransactionsService.name);
 
   constructor(
     private readonly utilsService: UtilsService,
     private readonly transactionsRepository: TransactionsRepository,
-  ) {
-    this.logger = new Logger(TransactionsService.name);
-  }
+  ) {}
 
   async sendTransaction(body: SendTransactionDto) {
     const { logger, utils, repository } = this.init();

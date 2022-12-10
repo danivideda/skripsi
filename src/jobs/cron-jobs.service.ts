@@ -1,9 +1,9 @@
 import { BlockFrostAPI } from '@blockfrost/blockfrost-js';
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { BufferLike } from 'cbor/types/lib/decoder';
-import { RedisClientType } from 'redis';
+import { RedisClientType, SchemaFieldTypes } from 'redis';
 import { UtilsService } from 'src/utils/utils.service';
 import { BLOCKFROST_CLIENT, REDIS_CLIENT } from '../common';
 
@@ -91,7 +91,6 @@ export class CronJobsService {
     for (let i = 0; i < witnessSetCount; i++) {
       const vkey = Buffer.alloc(32, 'vkey-dummy-bytes');
       const signature = Buffer.alloc(64, 'signature-dummy-bytes');
-      console.log(vkey, signature);
       witnessList.push([vkey, signature]);
     }
     const witnessSetDummy: Map<number, any> = new Map().set(0, witnessList);
@@ -150,7 +149,7 @@ export class CronJobsService {
     // Save into Redis
     const stakeAddressList: Array<string> = [];
     for (const transactionId of transactionIdList) {
-      stakeAddressList.push(transactionId.slice('Transactions:'.length - 1, -1));
+      stakeAddressList.push(transactionId.slice('Transactions:'.length, -1));
     }
     const witnessSignatureList: Array<string> = [];
     const signedList: Array<string> = [];
@@ -158,8 +157,45 @@ export class CronJobsService {
       stakeAddressList,
       transactionFullCborHex: transactionFullCborHex.toString('hex'),
       witnessSignatureList,
-      signedList
+      signedList,
     };
+
+    let setIndex;
+    try {
+      setIndex = await this.redisClient.ft.create(
+        'idx:batches',
+        {
+          '$.stakeAddressList.*': {
+            type: SchemaFieldTypes.TAG,
+            AS: 'stakeAddressList',
+          },
+          '$.transactionFullCborHex': {
+            type: SchemaFieldTypes.TAG,
+            AS: 'transactionFullCborHex',
+          },
+          '$.witnessSignatureList.*': {
+            type: SchemaFieldTypes.TAG,
+            AS: 'witnessSignatureList',
+          },
+          '$.signedList.*': {
+            type: SchemaFieldTypes.TAG,
+            AS: 'signedList',
+          },
+        },
+        {
+          ON: 'JSON',
+          PREFIX: 'Batches:',
+        },
+      );
+    } catch (error) {
+      if (error.message === 'Index already exists') {
+        this.logger.log('Index exists already, skipped creation.');
+      } else {
+        // Something went wrong, perhaps RediSearch isn't installed...
+        throw new InternalServerErrorException();
+      }
+    }
+
     const RedisBatchesKey = `Batches:${txId}`;
     const setToRedis = await this.redisClient
       .multi()
@@ -174,6 +210,7 @@ export class CronJobsService {
       `Calculated Total Fee: ${calculatedTotalFee}`,
       `Fee per participant: ${feePerParticipant}`,
       `Saved to Redis: ${setToRedis}`,
+      `Index set: ${setIndex}`,
     );
   }
 }
