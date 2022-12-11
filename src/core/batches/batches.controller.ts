@@ -10,5 +10,4 @@ export class BatchesController {
   async sign(@Body() signDto: SignBatchesDto) {
     return await this.batchesService.signBatch(signDto);
   }
-
 }

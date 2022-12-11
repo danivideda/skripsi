@@ -17,6 +17,10 @@ export class BatchesService {
     @Inject(BLOCKFROST_CLIENT) private readonly blockfrostClient: BlockFrostAPI,
   ) {}
 
+  /**
+   * TODO:
+   * Implements the new inverted-key technique on cron-jobs batches
+   */
   async signBatch(body: SignBatchesDto) {
     const { stakeAddressHex, signatureCborHex } = body;
 

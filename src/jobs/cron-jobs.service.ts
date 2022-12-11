@@ -27,7 +27,7 @@ export class CronJobsService {
       return this.logger.debug(`Need at least ${batchLimit} in Queue. Current: ${transactionCountInQueue}`);
     }
 
-    let transactionIdList: Array<string> = [];
+    let transactionKeyList: Array<string> = [];
     let transactionObjList: Array<any> = [];
 
     // Transaction Body ----
@@ -47,14 +47,14 @@ export class CronJobsService {
     // end ----
 
     // Collect Transaction object from Redis
-    transactionIdList = await this.redisClient.lRange(RedisQueueKey, 0, batchLimit - 1);
-    for (const transactionId of transactionIdList) {
+    transactionKeyList = await this.redisClient.lRange(RedisQueueKey, 0, batchLimit - 1);
+    for (const transactionKey of transactionKeyList) {
       transactionObjList.push(
         (
           await this.redisClient
             .multi()
-            .json.get(transactionId.toString())
-            .json.del(transactionId.toString())
+            .json.get(transactionKey.toString())
+            .json.del(transactionKey.toString())
             .lPop(RedisQueueKey)
             .exec()
         )[0],
@@ -104,10 +104,10 @@ export class CronJobsService {
     // Calculate fees after including the witness set dummy
     const totalFee: number = minFee + feePerByte * transactionFullCborHex.byteLength;
     const calculatedTotalFee: number =
-      totalFee % transactionIdList.length == 0
+      totalFee % transactionKeyList.length == 0
         ? totalFee
-        : (Math.trunc(totalFee / transactionIdList.length) + 1) * transactionIdList.length;
-    const feePerParticipant: number = Math.trunc(calculatedTotalFee / transactionIdList.length);
+        : (Math.trunc(totalFee / transactionKeyList.length) + 1) * transactionKeyList.length;
+    const feePerParticipant: number = Math.trunc(calculatedTotalFee / transactionKeyList.length);
 
     // Repeat creating the Transaction Body set
     transactionBody = new Map();
@@ -148,8 +148,8 @@ export class CronJobsService {
 
     // Save into Redis
     const stakeAddressList: Array<string> = [];
-    for (const transactionId of transactionIdList) {
-      stakeAddressList.push(transactionId.slice('Transactions:'.length, -1));
+    for (const transactionKey of transactionKeyList) {
+      stakeAddressList.push(transactionKey.slice('Transactions:'.length, -1));
     }
     const witnessSignatureList: Array<string> = [];
     const signedList: Array<string> = [];
@@ -161,11 +161,17 @@ export class CronJobsService {
     };
 
     const RedisBatchesKey = `Batches:${txId}`;
-    const setToRedis = await this.redisClient
+    const redisQuery = this.redisClient
       .multi()
       .json.SET(RedisBatchesKey, '$', jsonData)
-      .expire(RedisBatchesKey, timeToLiveSecond)
-      .exec();
+      .expire(RedisBatchesKey, timeToLiveSecond);
+
+    for (const transactionKey of transactionKeyList) {
+      const RedisUsersKey = `Users:Batches:${transactionKey.slice('Transactions:'.length, -1)}`;
+      redisQuery.set(RedisUsersKey, RedisBatchesKey).expire(RedisUsersKey, timeToLiveSecond);
+    }
+
+    const saveToRedis = await redisQuery.exec();
 
     this.logger.debug(
       `CborHex Full Transaction: ${transactionFullCborHex.toString('hex')}`,
@@ -173,7 +179,7 @@ export class CronJobsService {
       `Max Possible Fee: ${maxPossibleFee}`,
       `Calculated Total Fee: ${calculatedTotalFee}`,
       `Fee per participant: ${feePerParticipant}`,
-      `Saved to Redis: ${setToRedis}`,
+      `Saved to Redis: ${saveToRedis}`,
     );
   }
 }
