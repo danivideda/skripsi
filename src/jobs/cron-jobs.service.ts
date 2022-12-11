@@ -160,42 +160,6 @@ export class CronJobsService {
       signedList,
     };
 
-    let setIndex;
-    try {
-      setIndex = await this.redisClient.ft.create(
-        'idx:batches',
-        {
-          '$.stakeAddressList.*': {
-            type: SchemaFieldTypes.TAG,
-            AS: 'stakeAddressList',
-          },
-          '$.transactionFullCborHex': {
-            type: SchemaFieldTypes.TAG,
-            AS: 'transactionFullCborHex',
-          },
-          '$.witnessSignatureList.*': {
-            type: SchemaFieldTypes.TAG,
-            AS: 'witnessSignatureList',
-          },
-          '$.signedList.*': {
-            type: SchemaFieldTypes.TAG,
-            AS: 'signedList',
-          },
-        },
-        {
-          ON: 'JSON',
-          PREFIX: 'Batches:',
-        },
-      );
-    } catch (error) {
-      if (error.message === 'Index already exists') {
-        this.logger.log('Index exists already, skipped creation.');
-      } else {
-        // Something went wrong, perhaps RediSearch isn't installed...
-        throw new InternalServerErrorException();
-      }
-    }
-
     const RedisBatchesKey = `Batches:${txId}`;
     const setToRedis = await this.redisClient
       .multi()
@@ -210,7 +174,6 @@ export class CronJobsService {
       `Calculated Total Fee: ${calculatedTotalFee}`,
       `Fee per participant: ${feePerParticipant}`,
       `Saved to Redis: ${setToRedis}`,
-      `Index set: ${setIndex}`,
     );
   }
 }
