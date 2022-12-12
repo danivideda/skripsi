@@ -1,5 +1,13 @@
 import { BlockFrostAPI } from '@blockfrost/blockfrost-js';
-import { HttpStatus, Inject, Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
+import {
+  ForbiddenException,
+  HttpStatus,
+  Inject,
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { RedisClientType } from 'redis';
 import { BLOCKFROST_CLIENT, REDIS_CLIENT } from 'src/common';
@@ -25,12 +33,38 @@ export class BatchesService {
     const { stakeAddressHex, signatureCborHex } = body;
 
     try {
-      const batchItem = await this.redisClient.ft.search('idx:batches', `@stakeAddressList:{${stakeAddressHex}}`);
-      this.logger.debug(JSON.stringify(batchItem));
+      const RedisUsersBatchesKey = `Users:Batches:${stakeAddressHex}`;
+      const RedisItemBatchKey = await this.redisClient.get(RedisUsersBatchesKey);
 
-      this.utilsService.createResponse(HttpStatus.OK, 'Batch signed', JSON.stringify(batchItem));
+      if (!RedisItemBatchKey) {
+        throw new InternalServerErrorException();
+      }
+      const batchItem: any = await this.redisClient.json.get(RedisItemBatchKey);
+
+      // Check if address can sign this batch
+      for (const _stakeAddressHex of batchItem.stakeAddressList) {
+        if (stakeAddressHex.toString() === _stakeAddressHex.toString())
+          throw new UnauthorizedException('Address cannot sign this transaction');
+      }
+
+      // Check if address already signed
+      for (const _stakeAddressHex of batchItem.signedList) {
+        if (stakeAddressHex.toString() === _stakeAddressHex.toString())
+          throw new ForbiddenException('Address already signed');
+      }
+
+      // Update and insert signature into redis
+      const updatedBatchItem = await this.redisClient
+        .multi()
+        .json.arrAppend(RedisItemBatchKey!, '$.witnessSignatureList', signatureCborHex)
+        .json.arrAppend(RedisItemBatchKey!, '$.signedList', stakeAddressHex)
+        .exec();
+
+      return this.utilsService.createResponse(HttpStatus.OK, 'Batch signed', updatedBatchItem);
     } catch (error) {
-      throw new InternalServerErrorException();
+      if (error instanceof ForbiddenException) throw new ForbiddenException(error.message);
+      if (error instanceof UnauthorizedException) throw new ForbiddenException(error.message);
+      if (error instanceof InternalServerErrorException) throw new InternalServerErrorException();
     }
   }
 }

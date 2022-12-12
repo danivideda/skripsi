@@ -149,7 +149,7 @@ export class CronJobsService {
     // Save into Redis
     const stakeAddressList: Array<string> = [];
     for (const transactionKey of transactionKeyList) {
-      stakeAddressList.push(transactionKey.slice('Transactions:'.length, -1));
+      stakeAddressList.push(transactionKey.slice('Transactions:'.length));
     }
     const witnessSignatureList: Array<string> = [];
     const signedList: Array<string> = [];
@@ -167,7 +167,7 @@ export class CronJobsService {
       .expire(RedisBatchesKey, timeToLiveSecond);
 
     for (const transactionKey of transactionKeyList) {
-      const RedisUsersKey = `Users:Batches:${transactionKey.slice('Transactions:'.length, -1)}`;
+      const RedisUsersKey = 'Users:Batches:' + transactionKey.slice('Transactions:'.length);
       redisQuery.set(RedisUsersKey, RedisBatchesKey).expire(RedisUsersKey, timeToLiveSecond);
     }
 
