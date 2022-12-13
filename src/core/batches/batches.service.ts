@@ -31,6 +31,7 @@ export class BatchesService {
    */
   async signBatch(body: SignBatchesDto) {
     const { stakeAddressHex, signatureCborHex } = body;
+    const batchLimit = Number(this.configService.getOrThrow('BATCHED_TRANSACTION_LIMIT'));
 
     try {
       const RedisUsersBatchesKey = `Users:Batches:${stakeAddressHex}`;
@@ -42,9 +43,8 @@ export class BatchesService {
       const batchItem: any = await this.redisClient.json.get(RedisItemBatchKey);
 
       // Check if address can sign this batch
-      for (const _stakeAddressHex of batchItem.stakeAddressList) {
-        if (stakeAddressHex.toString() === _stakeAddressHex.toString())
-          throw new UnauthorizedException('Address cannot sign this transaction');
+      if (!batchItem.stakeAddressList.includes(stakeAddressHex)) {
+        throw new UnauthorizedException('Address cannot sign this transaction');
       }
 
       // Check if address already signed
@@ -54,17 +54,56 @@ export class BatchesService {
       }
 
       // Update and insert signature into redis
-      const updatedBatchItem = await this.redisClient
+      const updatedBatchStatus: any = await this.redisClient
         .multi()
         .json.arrAppend(RedisItemBatchKey!, '$.witnessSignatureList', signatureCborHex)
         .json.arrAppend(RedisItemBatchKey!, '$.signedList', stakeAddressHex)
         .exec();
 
-      return this.utilsService.createResponse(HttpStatus.OK, 'Batch signed', updatedBatchItem);
+      // Stop here if it not all already signed
+      if (updatedBatchStatus[0][0] < batchLimit) {
+        return this.utilsService.createResponse(HttpStatus.OK, 'Batch signed', updatedBatchStatus);
+      }
+
+      // Continue here if all is signed
+      const updatedBatchItem: any = await this.redisClient.json.get(RedisItemBatchKey);
+
+      // Collect signatures to a single array
+      const allSignatureList = [];
+      for (const signatureListCborHex of updatedBatchItem.witnessSignatureList) {
+        const signatureListObj: Array<any> = (await this.utilsService.decodeCbor(signatureListCborHex)).get(0);
+        for (const signatureCborHex of signatureListObj) {
+          allSignatureList.push(signatureCborHex);
+        }
+      }
+
+      // Insert to Cbor
+      const transactionFullCborHex = updatedBatchItem.transactionFullCborHex;
+      const transactionFullObj = await this.utilsService.decodeCbor(transactionFullCborHex);
+      transactionFullObj[1] = new Map().set(0, allSignatureList);
+
+      // Send to redis
+      const transactionFullEncoded = await this.utilsService.encodeCbor(transactionFullObj);
+      this.logger.debug(transactionFullEncoded.toString('hex'));
+      const saveToRedis = await this.redisClient.json.set(
+        RedisItemBatchKey,
+        '$.transactionFullCborHex',
+        transactionFullEncoded.toString('hex'),
+      );
+
+      this.logger.debug(
+        `Saved to redis: ${saveToRedis}`,
+        `Transaction full: ${transactionFullEncoded.toString('hex')}`,
+      );
+
+      return this.utilsService.createResponse(HttpStatus.CREATED, 'Successfully signed all participants.', {
+        txId: RedisItemBatchKey.slice('Batches:'.length),
+      });
     } catch (error) {
+      console.log(error);
       if (error instanceof ForbiddenException) throw new ForbiddenException(error.message);
       if (error instanceof UnauthorizedException) throw new ForbiddenException(error.message);
-      if (error instanceof InternalServerErrorException) throw new InternalServerErrorException();
+      throw new InternalServerErrorException();
     }
   }
 }

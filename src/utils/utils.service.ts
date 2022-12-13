@@ -26,7 +26,7 @@ export class UtilsService {
     return decoded;
   }
 
-  async encodeCbor(payload: any): Promise<any> {
+  async encodeCbor(payload: any): Promise<Buffer> {
     const encoded = await cbor.encodeAsync(payload);
     return encoded;
   }
