@@ -1,6 +1,6 @@
 import { HttpStatus, Injectable, Logger, InternalServerErrorException, BadRequestException } from '@nestjs/common';
 import { UtilsService } from 'src/utils/utils.service';
-import { RedisKeyExistsError } from 'src/common';
+import { RedisKeyExistsException } from 'src/common';
 import { SendTransactionDto } from './dto';
 import { TransactionsRepository } from './transactions.repository';
 
@@ -26,7 +26,7 @@ export class TransactionsService {
       );
     } catch (error) {
       logger.error(error);
-      if (error instanceof RedisKeyExistsError) {
+      if (error instanceof RedisKeyExistsException) {
         throw new BadRequestException(error.message);
       } else {
         throw new InternalServerErrorException();

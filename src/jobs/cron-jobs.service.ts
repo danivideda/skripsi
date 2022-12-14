@@ -1,11 +1,11 @@
 import { BlockFrostAPI } from '@blockfrost/blockfrost-js';
-import { Inject, Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { BufferLike } from 'cbor/types/lib/decoder';
-import { RedisClientType, SchemaFieldTypes } from 'redis';
+import { RedisClientType } from 'redis';
 import { UtilsService } from 'src/utils/utils.service';
-import { BLOCKFROST_CLIENT, REDIS_CLIENT } from '../common';
+import { BLOCKFROST_CLIENT, REDIS_CLIENT, TransactionsQueueKey, TransactionType } from 'src/common';
 
 @Injectable()
 export class CronJobsService {
@@ -20,15 +20,10 @@ export class CronJobsService {
 
   @Cron(CronExpression.EVERY_10_SECONDS)
   async handleCron() {
-    const RedisQueueKey = 'Transactions:Queue';
-    const transactionCountInQueue = await this.redisClient.lLen(RedisQueueKey);
-    const batchLimit = Number(this.configService.getOrThrow('BATCHED_TRANSACTION_LIMIT'));
-    if (transactionCountInQueue < Number(this.configService.getOrThrow('BATCHED_TRANSACTION_LIMIT'))) {
-      return this.logger.debug(`Need at least ${batchLimit} in Queue. Current: ${transactionCountInQueue}`);
-    }
+    this.checkIfEnoughItemInQueue();
 
-    let transactionKeyList: Array<string> = [];
-    let transactionObjList: Array<any> = [];
+    let transactionKeyList: string[] = [];
+    let transactionObjList: TransactionType[] = [];
 
     // Transaction Body ----
     const latestEpoch = (await this.blockfrostClient.epochsLatest()).epoch;
@@ -47,25 +42,28 @@ export class CronJobsService {
     // end ----
 
     // Collect Transaction object from Redis
-    transactionKeyList = await this.redisClient.lRange(RedisQueueKey, 0, batchLimit - 1);
+    transactionKeyList = await this.redisClient.lRange(
+      TransactionsQueueKey,
+      0,
+      Number(this.configService.getOrThrow('BATCHED_TRANSACTION_LIMIT')) - 1,
+    );
     for (const transactionKey of transactionKeyList) {
-      transactionObjList.push(
-        (
-          await this.redisClient
-            .multi()
-            .json.get(transactionKey.toString())
-            .json.del(transactionKey.toString())
-            .lPop(RedisQueueKey)
-            .exec()
-        )[0],
-      );
+      const obj: unknown = (
+        await this.redisClient
+          .multi()
+          .json.get(transactionKey.toString())
+          .json.del(transactionKey.toString())
+          .lPop(TransactionsQueueKey)
+          .exec()
+      )[0];
+      transactionObjList.push(obj as TransactionType);
     }
 
     for (const transactionObj of transactionObjList) {
       // Deconstruct the RedisCommandRawReply type object
-      const destinationAddressBech32: string = transactionObj['destinationAddressBech32'];
-      const utxos = transactionObj['utxos'];
-      const lovelace = Number(transactionObj['lovelace']);
+      const destinationAddressBech32 = transactionObj.destinationAddressBech32;
+      const utxos = transactionObj.utxos;
+      const lovelace = transactionObj.lovelace;
 
       // Construct the inputs and outputs
       let totalInputLovelace: number = 0;
@@ -181,5 +179,13 @@ export class CronJobsService {
       `Fee per participant: ${feePerParticipant}`,
       `Saved to Redis: ${saveToRedis}`,
     );
+  }
+
+  async checkIfEnoughItemInQueue(): Promise<void> {
+    const transactionCountInQueue = await this.redisClient.lLen(TransactionsQueueKey);
+    const batchLimit = Number(this.configService.getOrThrow('BATCHED_TRANSACTION_LIMIT'));
+    if (transactionCountInQueue < Number(this.configService.getOrThrow('BATCHED_TRANSACTION_LIMIT'))) {
+      return this.logger.debug(`Need at least ${batchLimit} in Queue. Current: ${transactionCountInQueue}`);
+    }
   }
 }

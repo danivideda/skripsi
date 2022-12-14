@@ -4,7 +4,7 @@ import { RedisClientType } from 'redis';
 import { REDIS_CLIENT } from 'src/common';
 import { UtilsService } from 'src/utils/utils.service';
 import { CreateTransactionData } from './transactions.type';
-import { RedisKeyExistsError } from 'src/common';
+import { RedisKeyExistsException } from 'src/common';
 
 @Injectable()
 export class TransactionsRepository {
@@ -28,7 +28,7 @@ export class TransactionsRepository {
     const RedisListKey = repo.concat(':Queue');
 
     if (await redisClient.json.GET(RedisJSONKey)) {
-      throw new RedisKeyExistsError(`Key '${RedisJSONKey}' already exists.`);
+      throw new RedisKeyExistsException(`Key '${RedisJSONKey}' already exists.`);
     }
 
     await redisClient.multi().json.SET(RedisJSONKey, '$', transaction).RPUSH(RedisListKey, RedisJSONKey).exec();
