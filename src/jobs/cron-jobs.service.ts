@@ -20,7 +20,7 @@ export class CronJobsService {
 
   @Cron(CronExpression.EVERY_10_SECONDS)
   async handleCron() {
-    this.checkIfEnoughItemInQueue();
+    checkIfEnoughItemInQueue();
 
     let transactionKeyList: string[] = [];
     let transactionObjList: TransactionType[] = [];
@@ -179,13 +179,13 @@ export class CronJobsService {
       `Fee per participant: ${feePerParticipant}`,
       `Saved to Redis: ${saveToRedis}`,
     );
-  }
 
-  async checkIfEnoughItemInQueue(): Promise<void> {
-    const transactionCountInQueue = await this.redisClient.lLen(TransactionsQueueKey);
-    const batchLimit = Number(this.configService.getOrThrow('BATCHED_TRANSACTION_LIMIT'));
-    if (transactionCountInQueue < Number(this.configService.getOrThrow('BATCHED_TRANSACTION_LIMIT'))) {
-      return this.logger.debug(`Need at least ${batchLimit} in Queue. Current: ${transactionCountInQueue}`);
+    async function checkIfEnoughItemInQueue(): Promise<void> {
+      const transactionCountInQueue = await this.redisClient.lLen(TransactionsQueueKey);
+      const batchLimit = Number(this.configService.getOrThrow('BATCHED_TRANSACTION_LIMIT'));
+      if (transactionCountInQueue < Number(this.configService.getOrThrow('BATCHED_TRANSACTION_LIMIT'))) {
+        return this.logger.debug(`Need at least ${batchLimit} in Queue. Current: ${transactionCountInQueue}`);
+      }
     }
   }
 }
