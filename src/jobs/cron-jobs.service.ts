@@ -5,7 +5,7 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 import { BufferLike } from 'cbor/types/lib/decoder';
 import { RedisClientType } from 'redis';
 import { UtilsService } from 'src/utils/utils.service';
-import { BLOCKFROST_CLIENT, REDIS_CLIENT, TransactionsQueueKey, TransactionType } from 'src/common';
+import { BLOCKFROST_CLIENT, REDIS_CLIENT, TransactionsQueueKey, Transaction } from 'src/common';
 
 @Injectable()
 export class CronJobsService {
@@ -19,34 +19,44 @@ export class CronJobsService {
   ) {}
 
   @Cron(CronExpression.EVERY_10_SECONDS)
-  async handleCron() {
-    checkIfEnoughItemInQueue();
+  async handleBatchTransactions() {
+    const transactionCountInQueue = await this.redisClient.lLen(TransactionsQueueKey);
+    const batchLimit = Number(this.configService.getOrThrow('BATCHED_TRANSACTION_LIMIT'));
+    if (transactionCountInQueue < batchLimit) {
+      return this.logger.debug(`Need at least ${batchLimit} in Queue. Current: ${transactionCountInQueue}`);
+    }
 
-    let transactionKeyList: string[] = [];
-    let transactionObjList: TransactionType[] = [];
+    const networkParams = await this.setNetworkParameters();
 
-    // Transaction Body ----
-    const latestEpoch = (await this.blockfrostClient.epochsLatest()).epoch;
-    const latestEpochParameters = await this.blockfrostClient.epochsParameters(latestEpoch);
-    const minFee = Number(latestEpochParameters.min_fee_b);
-    const feePerByte = Number(latestEpochParameters.min_fee_a);
-    const maxTxSize = Number(latestEpochParameters.max_tx_size);
-    const maxPossibleFee = minFee + feePerByte * maxTxSize;
-    const timeToLiveSecond = Number(this.configService.getOrThrow('TRANSACTIONS_TIME_TO_LIVE'));
-    const slotTTL: Number = timeToLiveSecond + Number((await this.blockfrostClient.blocksLatest()).slot);
+    const { transactionKeyList, transactionObjList } = await this.collectTransactionsInQueueFromDatabase();
 
-    let transactionBody = new Map();
-    let inputs: Array<any> = [];
-    let outputs: Array<any> = [];
-    let witnessSetCount: number = 0;
-    // end ----
+    const { calculatedTotalFee, feePerParticipant, txId, transactionFullCborHex } = await this.buildBatchedTransaction(
+      transactionKeyList,
+      transactionObjList,
+      networkParams,
+    );
 
+    const { saveToRedis } = await this.saveIntoRedis(transactionKeyList, transactionFullCborHex, txId, networkParams);
+
+    this.logger.debug(
+      `CborHex Full Transaction: ${transactionFullCborHex.toString('hex')}`,
+      `TxId: ${txId}`,
+      `Max Possible Fee: ${networkParams.maxPossibleFee}`,
+      `Calculated Total Fee: ${calculatedTotalFee}`,
+      `Fee per participant: ${feePerParticipant}`,
+      `Saved to Redis: ${saveToRedis}`,
+    );
+  }
+
+  private async collectTransactionsInQueueFromDatabase() {
     // Collect Transaction object from Redis
-    transactionKeyList = await this.redisClient.lRange(
+    const transactionKeyList: string[] = await this.redisClient.lRange(
       TransactionsQueueKey,
       0,
       Number(this.configService.getOrThrow('BATCHED_TRANSACTION_LIMIT')) - 1,
     );
+
+    let transactionObjList: Transaction[] = [];
     for (const transactionKey of transactionKeyList) {
       const obj: unknown = (
         await this.redisClient
@@ -56,8 +66,46 @@ export class CronJobsService {
           .lPop(TransactionsQueueKey)
           .exec()
       )[0];
-      transactionObjList.push(obj as TransactionType);
+      transactionObjList.push(obj as Transaction);
     }
+
+    return {
+      transactionKeyList,
+      transactionObjList,
+    };
+  }
+
+  private async setNetworkParameters() {
+    // Set parameters for TxBody
+    const latestEpoch = (await this.blockfrostClient.epochsLatest()).epoch;
+    const latestEpochParameters = await this.blockfrostClient.epochsParameters(latestEpoch);
+    const minFee = Number(latestEpochParameters.min_fee_b);
+    const feePerByte = Number(latestEpochParameters.min_fee_a);
+    const maxTxSize = Number(latestEpochParameters.max_tx_size);
+    const maxPossibleFee = minFee + feePerByte * maxTxSize;
+    const timeToLiveSecond = Number(this.configService.getOrThrow('TRANSACTIONS_TIME_TO_LIVE'));
+    const slotTTL: Number = timeToLiveSecond + Number((await this.blockfrostClient.blocksLatest()).slot);
+
+    return {
+      latestEpoch,
+      latestEpochParameters,
+      minFee,
+      feePerByte,
+      maxTxSize,
+      maxPossibleFee,
+      timeToLiveSecond,
+      slotTTL,
+    };
+  }
+
+  async buildBatchedTransaction(transactionKeyList: string[], transactionObjList: Transaction[], networkParams: any) {
+    const { minFee, feePerByte, maxPossibleFee, slotTTL } = networkParams;
+    // Transaction Body ----
+    let transactionBody = new Map();
+    let inputs: Array<any> = [];
+    let outputs: Array<any> = [];
+    let witnessSetCount: number = 0;
+    // end ----
 
     for (const transactionObj of transactionObjList) {
       // Deconstruct the RedisCommandRawReply type object
@@ -144,6 +192,21 @@ export class CronJobsService {
     const transactionBodyCborHex = await this.utilsService.encodeCbor(transactionBody);
     const txId = this.utilsService.blake2b256(transactionBodyCborHex);
 
+    return {
+      calculatedTotalFee,
+      feePerParticipant,
+      transactionFullCborHex,
+      txId,
+    };
+  }
+
+  private async saveIntoRedis(
+    transactionKeyList: string[],
+    transactionFullCborHex: Buffer,
+    txId: string,
+    networkParams: any,
+  ) {
+    const { timeToLiveSecond } = networkParams;
     // Save into Redis
     const stakeAddressList: Array<string> = [];
     for (const transactionKey of transactionKeyList) {
@@ -171,21 +234,8 @@ export class CronJobsService {
 
     const saveToRedis = await redisQuery.exec();
 
-    this.logger.debug(
-      `CborHex Full Transaction: ${transactionFullCborHex.toString('hex')}`,
-      `TxId: ${txId}`,
-      `Max Possible Fee: ${maxPossibleFee}`,
-      `Calculated Total Fee: ${calculatedTotalFee}`,
-      `Fee per participant: ${feePerParticipant}`,
-      `Saved to Redis: ${saveToRedis}`,
-    );
-
-    async function checkIfEnoughItemInQueue(): Promise<void> {
-      const transactionCountInQueue = await this.redisClient.lLen(TransactionsQueueKey);
-      const batchLimit = Number(this.configService.getOrThrow('BATCHED_TRANSACTION_LIMIT'));
-      if (transactionCountInQueue < Number(this.configService.getOrThrow('BATCHED_TRANSACTION_LIMIT'))) {
-        return this.logger.debug(`Need at least ${batchLimit} in Queue. Current: ${transactionCountInQueue}`);
-      }
-    }
+    return {
+      saveToRedis,
+    };
   }
 }
