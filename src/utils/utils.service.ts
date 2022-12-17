@@ -44,7 +44,7 @@ export class UtilsService {
   }
 
   blake2b256(payload: Buffer): string {
-    const bytesLength = 256 / 8
+    const bytesLength = 256 / 8;
     return blake2bHex(payload, undefined, bytesLength);
   }
 }
