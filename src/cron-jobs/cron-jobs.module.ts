@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { BlockfrostModule } from 'src/providers/blockfrost/blockfrost.module';
 import { RedisModule } from 'src/providers/redis/redis.module';
-import { BatchJob } from './classes/batch.job';
+import { BatchJob } from './jobs/batch.job';
 import { CronJobsService } from './cron-jobs.service';
 
 @Module({

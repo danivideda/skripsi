@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { BatchJob } from './classes/batch.job';
+import { BatchJob } from './jobs/batch.job';
 
 @Injectable()
 export class CronJobsService {

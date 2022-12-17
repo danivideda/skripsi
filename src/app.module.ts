@@ -3,7 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { ScheduleModule } from '@nestjs/schedule';
 import { BatchesModule } from './core/batches/batches.module';
 import { TransactionsModule } from './core/transactions/transactions.module';
-import { CronJobsModule } from './jobs/cron-jobs.module';
+import { CronJobsModule } from './cron-jobs/cron-jobs.module';
 import { UtilsModule } from './utils/utils.module';
 
 const ENV = process.env.NODE_ENV;
