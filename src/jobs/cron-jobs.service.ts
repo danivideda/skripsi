@@ -29,10 +29,9 @@ export class CronJobsService {
 
   @Cron(CronExpression.EVERY_10_SECONDS)
   async handleBatchTransactions() {
-    const transactionCountInQueue: number = await this.redisClient.lLen(TransactionsQueueKey);
-    const batchLimit: number = Number(this.configService.getOrThrow('BATCHED_TRANSACTION_LIMIT'));
-    if (transactionCountInQueue < batchLimit) {
-      return this.logger.debug(`Need at least ${batchLimit} in Queue. Current: ${transactionCountInQueue}`);
+    const notEnoughTransactionsInQueue = await this.checkIfNotEnoughTransactionsInQueue();
+    if (notEnoughTransactionsInQueue) {
+      return this.logger.debug(notEnoughTransactionsInQueue.message);
     }
 
     const networkParams: NetworkParams = await this.setNetworkParameters();
@@ -55,6 +54,14 @@ export class CronJobsService {
       `Fee per participant: ${feePerParticipant}`,
       `Saved to Redis: ${saveToRedis}`,
     );
+  }
+
+  private async checkIfNotEnoughTransactionsInQueue() {
+    const transactionCountInQueue: number = await this.redisClient.lLen(TransactionsQueueKey);
+    const batchLimit: number = Number(this.configService.getOrThrow('BATCHED_TRANSACTION_LIMIT'));
+    if (transactionCountInQueue < batchLimit) {
+      return { message: `Need at least ${batchLimit} in Queue. Current: ${transactionCountInQueue}` };
+    }
   }
 
   private async collectTransactionsInQueueFromDatabase(): Promise<{
