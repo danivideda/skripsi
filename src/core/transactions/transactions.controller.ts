@@ -10,9 +10,4 @@ export class TransactionsController {
   async send(@Body() sendDto: SendTransactionDto) {
     return await this.transactionService.sendTransaction(sendDto);
   }
-
-  @Get('count')
-  async getTransactionsCount() {
-    return await this.transactionService.getTransactionsCount();
-  }
 }

@@ -1,35 +1,37 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { RedisClientType } from 'redis';
-import { REDIS_CLIENT, Transaction } from 'src/common';
+import { REDIS_CLIENT, Transaction, DTransactionsQueueKey, DTransactionsRepoName } from 'src/common';
 import { RedisKeyExistsException } from 'src/common';
 
 @Injectable()
 export class TransactionsRepository {
-  private readonly ttl: number;
-  private readonly logger: Logger;
-  private readonly repo: string;
+  private readonly logger: Logger = new Logger(TransactionsRepository.name);
 
-  constructor(configService: ConfigService, @Inject(REDIS_CLIENT) private readonly redisClient: RedisClientType) {
-    // this.ttl = parseInt(configService.getOrThrow('TRANSACTIONS_TIME_TO_LIVE'));
-    this.logger = new Logger(TransactionsRepository.name);
-    this.repo = 'Transactions';
-  }
+  constructor(@Inject(REDIS_CLIENT) private readonly redisClient: RedisClientType) {}
 
   async createTransaction(transaction: Transaction, stakeAddress: string) {
-    const RedisJSONKey = this.repo.concat(':', stakeAddress);
-    const RedisListKey = this.repo.concat(':Queue');
+    const DTransactionItemKey = DTransactionsRepoName.concat(':', stakeAddress);
 
-    if (await this.redisClient.json.GET(RedisJSONKey)) {
-      throw new RedisKeyExistsException(`Key '${RedisJSONKey}' already exists.`);
+    await this.checkIfKeyAlreadyExist(DTransactionItemKey);
+
+    await this.saveToDatabase(DTransactionItemKey, transaction);
+
+    return {
+      stakeAddress
     }
+  }
 
-    await this.redisClient.multi().json.SET(RedisJSONKey, '$', transaction).RPUSH(RedisListKey, RedisJSONKey).exec();
+  private async checkIfKeyAlreadyExist(DTransactionItemKey: string) {
+    if (await this.redisClient.json.GET(DTransactionItemKey)) {
+      throw new RedisKeyExistsException(`Key '${DTransactionItemKey}' already exists.`);
+    }
+  }
 
-    const newTransaction = await this.redisClient.json.GET(RedisJSONKey);
-
-    this.logger.log(`Successfully created ${RedisJSONKey}`);
-
-    return newTransaction;
+  private async saveToDatabase(DTransactionItemKey: string, transaction: Transaction) {
+    await this.redisClient
+      .multi()
+      .json.SET(DTransactionItemKey, '$', transaction)
+      .RPUSH(DTransactionsQueueKey, DTransactionItemKey)
+      .exec();
   }
 }

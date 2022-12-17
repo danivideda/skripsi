@@ -4,7 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import { BufferLike } from 'cbor/types/lib/decoder';
 import { RedisClientType } from 'redis';
 import { UtilsService } from 'src/utils/utils.service';
-import { BLOCKFROST_CLIENT, REDIS_CLIENT, TransactionsQueueKey, Transaction } from 'src/common';
+import { BLOCKFROST_CLIENT, REDIS_CLIENT, DTransactionsQueueKey, Transaction } from 'src/common';
 
 interface NetworkParams {
   minFee: number;
@@ -32,60 +32,54 @@ export class BatchJob {
     @Inject(BLOCKFROST_CLIENT) private readonly blockfrostClient: BlockFrostAPI,
   ) {}
 
+  /**
+   * Batch multiple transactions into one transaction
+   */
   async batchTransactions() {
     const notEnoughTransactionsInQueue = await this.checkIfNotEnoughTransactionsInQueue();
     if (notEnoughTransactionsInQueue) {
       return this.logger.debug(notEnoughTransactionsInQueue.message);
     }
 
-    this.networkParams = await this.setNetworkParameters();
+    await this.setNetworkParameters();
 
     await this.collectTransactionsInQueueFromDatabase();
 
     await this.buildBatchedTransaction();
 
-    await this.saveIntoRedis();
+    await this.saveToDatabase();
   }
 
   private async checkIfNotEnoughTransactionsInQueue() {
-    const transactionCountInQueue: number = await this.redisClient.lLen(TransactionsQueueKey);
+    const transactionCountInQueue: number = await this.redisClient.lLen(DTransactionsQueueKey);
     const batchLimit: number = Number(this.configService.getOrThrow('BATCHED_TRANSACTION_LIMIT'));
     if (transactionCountInQueue < batchLimit) {
       return { message: `Need at least ${batchLimit} in Queue. Current: ${transactionCountInQueue}` };
     }
   }
 
-  private async collectTransactionsInQueueFromDatabase(): Promise<{
-    transactionKeyList: string[];
-    transactionObjList: Transaction[];
-  }> {
+  private async collectTransactionsInQueueFromDatabase(): Promise<void> {
     // Collect Transaction object from Redis
-    const transactionKeyList: string[] = await this.redisClient.lRange(
-      TransactionsQueueKey,
+    this.transactionKeyList = await this.redisClient.lRange(
+      DTransactionsQueueKey,
       0,
       Number(this.configService.getOrThrow('BATCHED_TRANSACTION_LIMIT')) - 1,
     );
 
-    let transactionObjList: Transaction[] = [];
-    for (const transactionKey of transactionKeyList) {
+    for (const transactionKey of this.transactionKeyList) {
       const obj: unknown = (
         await this.redisClient
           .multi()
           .json.get(transactionKey.toString())
           .json.del(transactionKey.toString())
-          .lPop(TransactionsQueueKey)
+          .lPop(DTransactionsQueueKey)
           .exec()
       )[0];
-      transactionObjList.push(obj as Transaction);
+      this.transactionObjList.push(obj as Transaction);
     }
-
-    return {
-      transactionKeyList,
-      transactionObjList,
-    };
   }
 
-  private async setNetworkParameters(): Promise<NetworkParams> {
+  private async setNetworkParameters(): Promise<void> {
     // Set parameters for TxBody
     const latestEpoch = (await this.blockfrostClient.epochsLatest()).epoch;
     const latestEpochParameters = await this.blockfrostClient.epochsParameters(latestEpoch);
@@ -96,7 +90,7 @@ export class BatchJob {
     const timeToLiveSecond = Number(this.configService.getOrThrow('TRANSACTIONS_TIME_TO_LIVE'));
     const slotTTL = timeToLiveSecond + Number((await this.blockfrostClient.blocksLatest()).slot);
 
-    return {
+    this.networkParams = {
       minFee,
       feePerByte,
       maxTxSize,
@@ -106,7 +100,7 @@ export class BatchJob {
     };
   }
 
-  private async buildBatchedTransaction() {
+  private async buildBatchedTransaction(): Promise<void> {
     const { minFee, feePerByte, maxPossibleFee, slotTTL } = this.networkParams;
     // Transaction Body ----
     let transactionBody = new Map();
@@ -207,16 +201,9 @@ export class BatchJob {
       `Calculated Total Fee: ${calculatedTotalFee}`,
       `Fee per participant: ${feePerParticipant}`,
     );
-
-    return {
-      calculatedTotalFee,
-      feePerParticipant,
-      transactionFullCborHex,
-      txId,
-    };
   }
 
-  private async saveIntoRedis() {
+  private async saveToDatabase(): Promise<void> {
     const { timeToLiveSecond } = this.networkParams;
     // Save into Redis
     const stakeAddressList: Array<string> = [];
@@ -246,9 +233,5 @@ export class BatchJob {
     const saveToRedis = await redisQuery.exec();
 
     this.logger.debug(`Saved to Redis: ${saveToRedis}`);
-
-    return {
-      saveToRedis,
-    };
   }
 }
