@@ -4,7 +4,14 @@ import { ConfigService } from '@nestjs/config';
 import { BufferLike } from 'cbor/types/lib/decoder';
 import { RedisClientType } from 'redis';
 import { UtilsService } from 'src/utils/utils.service';
-import { BLOCKFROST_CLIENT, REDIS_CLIENT, DTransactionsQueueKey, Transaction } from 'src/common';
+import {
+  BLOCKFROST_CLIENT,
+  REDIS_CLIENT,
+  DTransactionsQueueKey,
+  Transaction,
+  DBatchesRepoName,
+  DTransactionsRepoName,
+} from 'src/common';
 
 type NetworkParams = {
   minFee: number;
@@ -15,6 +22,8 @@ type NetworkParams = {
   slotTTL: number;
 };
 
+type TxBodyMap = Map<any, any>;
+
 @Injectable()
 export class BatchJob {
   private readonly logger = new Logger(BatchJob.name);
@@ -22,7 +31,7 @@ export class BatchJob {
   private networkParams: NetworkParams;
   private transactionKeyList: string[];
   private transactionObjList: Transaction[];
-  private transactionFullBuffer: Buffer;
+  private fullTransactionCborBuffer: Buffer;
   private txId: string;
 
   constructor(
@@ -102,121 +111,34 @@ export class BatchJob {
   }
 
   private async buildBatchedTransaction(): Promise<void> {
-    const { minFee, feePerByte, maxPossibleFee, slotTTL } = this.networkParams;
+    const { maxPossibleFee } = this.networkParams;
 
-    const transactionBodyDummy = await this.createTxBody(maxPossibleFee);
+    const { transactionBody: txBodyDummy, witnessSetCount: witnessSetCountDummy } = await this.createTxBody(
+      maxPossibleFee,
+    );
 
     const fullTransactionCborBufferDummy = await this.createFullTransactionCborBuffer(
-      transactionBodyDummy.transactionBody,
-      transactionBodyDummy.witnessSetCount,
+      txBodyDummy,
+      witnessSetCountDummy,
     );
 
-    const calculatedFee = await this.calculateFee(fullTransactionCborBufferDummy);
+    const { feeTotal, feePerParticipant } = await this.calculateFee(fullTransactionCborBufferDummy);
 
-    const transactionBodyR = await this.createTxBody(calculatedFee.feeTotal, calculatedFee.feePerParticipant);
-
-    const fullTransactionCborBufferDummyR = await this.createFullTransactionCborBuffer(
-      transactionBodyR.transactionBody,
-      transactionBodyR.witnessSetCount,
+    const { transactionBody: txBody, witnessSetCount: witnessSetCount } = await this.createTxBody(
+      feeTotal,
+      feePerParticipant,
     );
 
-    // Transaction Body ----
-    let transactionBody = new Map();
-    let inputs: Array<any> = [];
-    let outputs: Array<any> = [];
-    let witnessSetCount: number = 0;
-    // end ----
-
-    for (const transactionObj of this.transactionObjList) {
-      // Deconstruct the RedisCommandRawReply type object
-      const destinationAddressBech32 = transactionObj.destinationAddressBech32;
-      const utxos = transactionObj.utxos;
-      const lovelace = transactionObj.lovelace;
-
-      // Construct the inputs and outputs
-      let totalInputLovelace: number = 0;
-      let changeAddrListHex: Array<BufferLike> = [];
-      for (const item of utxos) {
-        const input: Array<any> = (await this.utilsService.decodeCbor(item))[0];
-        const output: Array<any> = (await this.utilsService.decodeCbor(item))[1];
-        inputs.push(input);
-
-        totalInputLovelace += Number(output[1]);
-        changeAddrListHex.push(output[0]);
-      }
-
-      outputs.push([this.utilsService.decodeBech32(destinationAddressBech32), Number(lovelace)]);
-      outputs.push([changeAddrListHex[changeAddrListHex.length - 1], totalInputLovelace - lovelace]);
-      witnessSetCount = witnessSetCount + Number(new Set(changeAddrListHex).size);
-    }
-
-    transactionBody.set(0, inputs).set(1, outputs).set(2, maxPossibleFee).set(3, slotTTL);
-
-    // Construct Witnesses dummy
-    let witnessList = [];
-    for (let i = 0; i < witnessSetCount; i++) {
-      const vkey = Buffer.alloc(32, 'vkey-dummy-bytes');
-      const signature = Buffer.alloc(64, 'signature-dummy-bytes');
-      witnessList.push([vkey, signature]);
-    }
-    const witnessSetDummy: Map<number, any> = new Map().set(0, witnessList);
-    let transactionFullCborHex: Buffer = await this.utilsService.encodeCbor([
-      transactionBody,
-      witnessSetDummy,
-      true,
-      null,
-    ]);
-
-    // Calculate fees after including the witness set dummy
-    const totalFee: number = minFee + feePerByte * transactionFullCborHex.byteLength;
-    const calculatedTotalFee: number =
-      totalFee % this.transactionKeyList.length == 0
-        ? totalFee
-        : (Math.trunc(totalFee / this.transactionKeyList.length) + 1) * this.transactionKeyList.length;
-    const feePerParticipant: number = Math.trunc(calculatedTotalFee / this.transactionKeyList.length);
-
-    // Repeat creating the Transaction Body set
-    transactionBody = new Map();
-    inputs = [];
-    outputs = [];
-    for (const transactionObj of this.transactionObjList) {
-      // Deconstruct the RedisCommandRawReply type object
-      const destinationAddressBech32: string = transactionObj['destinationAddressBech32'];
-      const utxos = transactionObj['utxos'];
-      const lovelace = Number(transactionObj['lovelace']);
-
-      // Construct the inputs and outputs
-      let totalInputLovelace: number = 0;
-      let changeAddrListHex: Array<BufferLike> = [];
-      for (const item of utxos) {
-        const input: Array<any> = (await this.utilsService.decodeCbor(item))[0];
-        const output: Array<any> = (await this.utilsService.decodeCbor(item))[1];
-        inputs.push(input);
-
-        totalInputLovelace += Number(output[1]);
-        changeAddrListHex.push(output[0]);
-      }
-
-      outputs.push([this.utilsService.decodeBech32(destinationAddressBech32), Number(lovelace)]);
-      outputs.push([
-        changeAddrListHex[changeAddrListHex.length - 1],
-        totalInputLovelace - lovelace - feePerParticipant,
-      ]);
-      witnessSetCount = witnessSetCount + Number(new Set(changeAddrListHex).size);
-    }
-
-    transactionBody.set(0, inputs).set(1, outputs).set(2, calculatedTotalFee).set(3, slotTTL);
-    transactionFullCborHex = await this.utilsService.encodeCbor([transactionBody, {}, true, null]);
+    this.fullTransactionCborBuffer = await this.createFullTransactionCborBuffer(txBody, witnessSetCount);
 
     // Create TxID
-    const transactionBodyCborHex = await this.utilsService.encodeCbor(transactionBody);
-    this.txId = this.utilsService.blake2b256(transactionBodyCborHex);
+    await this.createTxId(txBody);
 
     this.logger.debug(
-      `CborHex Full Transaction: ${transactionFullCborHex.toString('hex')}`,
+      `CborHex Full Transaction: ${this.fullTransactionCborBuffer.toString('hex')}`,
       `TxId: ${this.txId}`,
       `Max Possible Fee: ${this.networkParams.maxPossibleFee}`,
-      `Calculated Total Fee: ${calculatedTotalFee}`,
+      `Calculated Total Fee: ${feeTotal}`,
       `Fee per participant: ${feePerParticipant}`,
     );
   }
@@ -264,7 +186,7 @@ export class BatchJob {
     };
   }
 
-  private async createFullTransactionCborBuffer(transactionBody: any, witnessSetCount: number) {
+  private async createFullTransactionCborBuffer(transactionBody: TxBodyMap, witnessSetCount: number) {
     // Construct Witnesses dummy
     let witnessList = [];
     for (let i = 0; i < witnessSetCount; i++) {
@@ -296,23 +218,28 @@ export class BatchJob {
     return { feeTotal, feePerParticipant };
   }
 
+  private async createTxId(transactionBody: TxBodyMap): Promise<void> {
+    const transactionBodyCborBuffer = await this.utilsService.encodeCbor(transactionBody);
+    this.txId = this.utilsService.blake2b256(transactionBodyCborBuffer);
+  }
+
   private async saveToDatabase(): Promise<void> {
     const { timeToLiveSecond } = this.networkParams;
     // Save into Redis
     const stakeAddressList: Array<string> = [];
     for (const transactionKey of this.transactionKeyList) {
-      stakeAddressList.push(transactionKey.slice('Transactions:'.length));
+      stakeAddressList.push(transactionKey.slice(`${DTransactionsRepoName}:`.length));
     }
     const witnessSignatureList: Array<string> = [];
     const signedList: Array<string> = [];
     const jsonData = {
       stakeAddressList,
-      transactionFullCborHex: this.transactionFullBuffer.toString('hex'),
+      transactionFullCborHex: this.fullTransactionCborBuffer.toString('hex'),
       witnessSignatureList,
       signedList,
     };
 
-    const RedisBatchesKey = `Batches:${this.txId}`;
+    const RedisBatchesKey = `${DBatchesRepoName}:${this.txId}`;
     const redisQuery = this.redisClient
       .multi()
       .json.SET(RedisBatchesKey, '$', jsonData)
