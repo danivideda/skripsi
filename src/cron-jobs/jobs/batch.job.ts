@@ -31,7 +31,7 @@ export class BatchJob {
   private networkParams: NetworkParams;
   private transactionKeyList: string[] = [];
   private transactionObjList: Transaction[] = [];
-  private fullTransactionCborBuffer: Buffer;
+  private transactionFullCborBuffer: Buffer;
   private txId: string;
 
   constructor(
@@ -132,13 +132,13 @@ export class BatchJob {
       feePerParticipant,
     );
 
-    this.fullTransactionCborBuffer = await this.createFullTransactionCborBuffer(txBody, witnessSetCount);
+    this.transactionFullCborBuffer = await this.createFullTransactionCborBuffer(txBody, witnessSetCount);
 
     // Create TxID
     await this.createTxId(txBody);
 
     this.logger.debug(
-      `CborHex Full Transaction: ${this.fullTransactionCborBuffer.toString('hex')}`,
+      `CborHex Full Transaction: ${this.transactionFullCborBuffer.toString('hex')}`,
       `TxId: ${this.txId}`,
       `Max Possible Fee: ${this.networkParams.maxPossibleFee}`,
       `Calculated Total Fee: ${feeTotal}`,
@@ -239,7 +239,7 @@ export class BatchJob {
     const signedList: Array<string> = [];
     const jsonData = {
       stakeAddressList,
-      transactionFullCborHex: this.fullTransactionCborBuffer.toString('hex'),
+      transactionFullCborHex: this.transactionFullCborBuffer.toString('hex'),
       witnessSignatureList,
       signedList,
     };
