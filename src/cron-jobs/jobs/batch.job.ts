@@ -29,8 +29,8 @@ export class BatchJob {
   private readonly logger = new Logger(BatchJob.name);
 
   private networkParams: NetworkParams;
-  private transactionKeyList: string[];
-  private transactionObjList: Transaction[];
+  private transactionKeyList: string[] = [];
+  private transactionObjList: Transaction[] = [];
   private fullTransactionCborBuffer: Buffer;
   private txId: string;
 
@@ -47,7 +47,7 @@ export class BatchJob {
   async batchTransactions() {
     const notEnoughTransactionsInQueue = await this.checkIfNotEnoughTransactionsInQueue();
     if (notEnoughTransactionsInQueue) {
-      return this.logger.debug(notEnoughTransactionsInQueue.message);
+      return this.logger.log(notEnoughTransactionsInQueue.message);
     }
 
     await this.setNetworkParameters();
@@ -57,6 +57,8 @@ export class BatchJob {
     await this.buildBatchedTransaction();
 
     await this.saveToDatabase();
+
+    return this.logger.log('Batched.');
   }
 
   private async checkIfNotEnoughTransactionsInQueue(): Promise<{ message: string } | null> {
@@ -85,6 +87,7 @@ export class BatchJob {
           .lPop(DTransactionsQueueKey)
           .exec()
       )[0];
+
       this.transactionObjList.push(obj as Transaction);
     }
   }
@@ -205,7 +208,9 @@ export class BatchJob {
     return transactionFullCborBuffer;
   }
 
-  private async calculateFee(transactionFullCborHexBuffer: Buffer) {
+  private async calculateFee(
+    transactionFullCborHexBuffer: Buffer,
+  ): Promise<{ feeTotal: number; feePerParticipant: number }> {
     const { minFee, feePerByte } = this.networkParams;
     // Calculate fees after including the witness set dummy
     const rawFeeTotal: number = minFee + feePerByte * transactionFullCborHexBuffer.byteLength;
