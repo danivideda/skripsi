@@ -45,20 +45,24 @@ export class BatchJob {
    * Batch multiple transactions into one transaction
    */
   async batchTransactions() {
-    const notEnoughTransactionsInQueue = await this.checkIfNotEnoughTransactionsInQueue();
-    if (notEnoughTransactionsInQueue) {
-      return this.logger.log(notEnoughTransactionsInQueue.message);
+    try {
+      const notEnoughTransactionsInQueue = await this.checkIfNotEnoughTransactionsInQueue();
+      if (notEnoughTransactionsInQueue) {
+        return this.logger.log(notEnoughTransactionsInQueue.message);
+      }
+
+      await this.setNetworkParameters();
+
+      await this.collectTransactionsInQueueFromDatabase();
+
+      await this.buildBatchedTransaction();
+
+      await this.saveToDatabase();
+
+      return this.logger.log('Batched.');
+    } catch (error) {
+      this.logger.error(error);
     }
-
-    await this.setNetworkParameters();
-
-    await this.collectTransactionsInQueueFromDatabase();
-
-    await this.buildBatchedTransaction();
-
-    await this.saveToDatabase();
-
-    return this.logger.log('Batched.');
   }
 
   private async checkIfNotEnoughTransactionsInQueue(): Promise<{ message: string } | null> {
