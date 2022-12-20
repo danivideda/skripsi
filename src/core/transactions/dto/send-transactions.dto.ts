@@ -1,6 +1,6 @@
 import { IsArray, IsInt, IsNotEmpty, IsString } from 'class-validator';
 
-export class SendTransactionDto {
+export class CreateTransactionDto {
   @IsNotEmpty()
   @IsString()
   public stakeAddressHex: string;

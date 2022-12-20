@@ -1,13 +1,13 @@
 import { Body, Controller, Post } from '@nestjs/common';
-import { SendTransactionDto } from './dto';
+import { CreateTransactionDto as CreateTransactionDto } from './dto';
 import { TransactionsService } from './transactions.service';
 
 @Controller('transactions')
 export class TransactionsController {
   constructor(private transactionService: TransactionsService) {}
 
-  @Post('send')
-  async send(@Body() sendDto: SendTransactionDto) {
-    return await this.transactionService.sendTransaction(sendDto);
+  @Post('create')
+  async create(@Body() createTransactionDto: CreateTransactionDto) {
+    return await this.transactionService.createTransaction(createTransactionDto);
   }
 }

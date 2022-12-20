@@ -2,7 +2,7 @@ import { HttpStatus, Injectable, Logger, InternalServerErrorException, BadReques
 import type { Transaction } from '../../common';
 import { RedisKeyExistsException } from '../../common';
 import { UtilsService } from '../../utils/utils.service';
-import type { SendTransactionDto } from './dto';
+import type { CreateTransactionDto } from './dto';
 import { TransactionsRepository } from './transactions.repository';
 
 @Injectable()
@@ -14,7 +14,7 @@ export class TransactionsService {
     private readonly transactionsRepository: TransactionsRepository,
   ) {}
 
-  async sendTransaction(body: SendTransactionDto) {
+  async createTransaction(body: CreateTransactionDto) {
     const { stakeAddressHex, destinationAddressBech32, utxos, lovelace } = body;
 
     let createdTransaction;
