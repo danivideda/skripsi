@@ -32,14 +32,14 @@ export class UtilsService {
   }
 
   encodeBech32(prefix: string, payload: string): string {
-    let words = bech32.toWords(Buffer.from(payload, 'hex'));
+    const words = bech32.toWords(Buffer.from(payload, 'hex'));
     // The 1023 characters limit is the recommended maximum length, as per the docs says: https://npm.io/package/bech32
     return bech32.encode(prefix, words, 1023);
   }
 
   decodeBech32(encoded: string): Buffer {
     // The 1023 characters limit is the recommended maximum length, as per the docs says: https://npm.io/package/bech32
-    let decoded = bech32.decode(encoded, 1023);
+    const decoded = bech32.decode(encoded, 1023);
     return Buffer.from(bech32.fromWords(decoded.words));
   }
 

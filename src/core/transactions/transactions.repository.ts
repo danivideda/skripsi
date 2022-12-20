@@ -1,7 +1,12 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { RedisClientType } from 'redis';
-import { REDIS_CLIENT, Transaction, DTransactionsQueueKey, DTransactionsRepoName } from 'src/common';
-import { RedisKeyExistsException } from 'src/common';
+import {
+  REDIS_CLIENT,
+  Transaction,
+  DTransactionsQueueKey,
+  DTransactionsRepoName,
+  RedisKeyExistsException,
+} from '../../common';
 
 @Injectable()
 export class TransactionsRepository {
@@ -17,8 +22,8 @@ export class TransactionsRepository {
     await this.saveToDatabase(DTransactionItemKey, transaction);
 
     return {
-      stakeAddress
-    }
+      stakeAddress,
+    };
   }
 
   private async checkIfKeyAlreadyExist(DTransactionItemKey: string) {

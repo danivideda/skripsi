@@ -67,7 +67,7 @@ export class BatchJob {
 
   private async checkIfNotEnoughTransactionsInQueue(): Promise<{ message: string } | null> {
     const transactionCountInQueue: number = await this.redisClient.lLen(DTransactionsQueueKey);
-    const batchLimit: number = Number(this.configService.getOrThrow('BATCHED_TRANSACTION_LIMIT'));
+    const batchLimit = Number(this.configService.getOrThrow('BATCHED_TRANSACTION_LIMIT'));
     if (transactionCountInQueue < batchLimit) {
       return { message: `Need at least ${batchLimit} in Queue. Current: ${transactionCountInQueue}` };
     }
@@ -153,10 +153,10 @@ export class BatchJob {
   private async createTxBody(feeTotal: number, feePerParticipant?: number) {
     const { slotTTL } = this.networkParams;
     // Transaction Body ----
-    let transactionBody = new Map();
-    let inputs: Array<any> = [];
-    let outputs: Array<any> = [];
-    let witnessSetCount: number = 0;
+    const transactionBody = new Map();
+    const inputs: Array<any> = [];
+    const outputs: Array<any> = [];
+    let witnessSetCount = 0;
     // end ----
 
     for (const transactionObj of this.transactionObjList) {
@@ -166,8 +166,8 @@ export class BatchJob {
       const lovelace = transactionObj.lovelace;
 
       // Construct the inputs and outputs
-      let totalInputLovelace: number = 0;
-      let changeAddrListHex: Array<BufferLike> = [];
+      let totalInputLovelace = 0;
+      const changeAddrListHex: Array<BufferLike> = [];
       for (const item of utxos) {
         const input: Array<any> = (await this.utilsService.decodeCbor(item))[0];
         const output: Array<any> = (await this.utilsService.decodeCbor(item))[1];
@@ -195,7 +195,7 @@ export class BatchJob {
 
   private async createFullTransactionCborBuffer(transactionBody: TxBodyMap, witnessSetCount: number) {
     // Construct Witnesses dummy
-    let witnessList = [];
+    const witnessList = [];
     for (let i = 0; i < witnessSetCount; i++) {
       const vkey = Buffer.alloc(32, 'vkey-dummy-bytes');
       const signature = Buffer.alloc(64, 'signature-dummy-bytes');
