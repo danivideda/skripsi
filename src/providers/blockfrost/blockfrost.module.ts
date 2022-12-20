@@ -1,7 +1,8 @@
 import { BlockFrostAPI } from '@blockfrost/blockfrost-js';
-import { DynamicModule, Module, Provider } from '@nestjs/common';
+import type { DynamicModule, Provider } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { BLOCKFROST_CLIENT } from 'src/common/constants';
+import { BLOCKFROST_CLIENT } from '../../common/constants';
 
 @Module({
   imports: [ConfigModule],

@@ -1,12 +1,7 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { RedisClientType } from 'redis';
-import {
-  REDIS_CLIENT,
-  Transaction,
-  DTransactionsQueueKey,
-  DTransactionsRepoName,
-  RedisKeyExistsException,
-} from '../../common';
+import type { Transaction } from '../../common';
+import { REDIS_CLIENT, DTransactionsQueueKey, DTransactionsRepoName, RedisKeyExistsException } from '../../common';
 
 @Injectable()
 export class TransactionsRepository {

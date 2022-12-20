@@ -1,8 +1,9 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
+import type { HttpStatus } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { bech32 } from 'bech32';
-import { blake2b, blake2bHex } from 'blakejs';
+import { blake2bHex } from 'blakejs';
 import * as cbor from 'cbor';
-import { BufferLike } from 'cbor/types/lib/decoder';
+import type { BufferLike } from 'cbor/types/lib/decoder';
 import { createHash } from 'crypto';
 
 @Injectable()

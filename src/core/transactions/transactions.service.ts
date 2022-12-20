@@ -1,7 +1,8 @@
 import { HttpStatus, Injectable, Logger, InternalServerErrorException, BadRequestException } from '@nestjs/common';
-import { RedisKeyExistsException, Transaction } from '../../common';
+import type { Transaction } from '../../common';
+import { RedisKeyExistsException } from '../../common';
 import { UtilsService } from '../../utils/utils.service';
-import { SendTransactionDto } from './dto';
+import type { SendTransactionDto } from './dto';
 import { TransactionsRepository } from './transactions.repository';
 
 @Injectable()

@@ -1,7 +1,8 @@
-import { DynamicModule, Logger, Module, Provider } from '@nestjs/common';
+import type { DynamicModule, Provider } from '@nestjs/common';
+import { Logger, Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { createClient } from 'redis';
-import { REDIS_CLIENT } from 'src/common/constants';
+import { REDIS_CLIENT } from '../../common';
 
 @Module({
   imports: [ConfigModule],

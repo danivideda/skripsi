@@ -10,9 +10,9 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { RedisClientType } from 'redis';
-import { BLOCKFROST_CLIENT, REDIS_CLIENT } from 'src/common';
-import { UtilsService } from 'src/utils/utils.service';
-import { SignBatchesDto } from './dto';
+import { REDIS_CLIENT, BLOCKFROST_CLIENT } from '../../common';
+import { UtilsService } from '../../utils/utils.service';
+import type { SignBatchesDto } from './dto';
 
 @Injectable()
 export class BatchesService {
@@ -52,8 +52,8 @@ export class BatchesService {
       // Update and insert signature into redis
       const updatedBatchStatus: any = await this.redisClient
         .multi()
-        .json.arrAppend(RedisItemBatchKey!, '$.witnessSignatureList', signatureCborHex)
-        .json.arrAppend(RedisItemBatchKey!, '$.signedList', stakeAddressHex)
+        .json.arrAppend(RedisItemBatchKey, '$.witnessSignatureList', signatureCborHex)
+        .json.arrAppend(RedisItemBatchKey, '$.signedList', stakeAddressHex)
         .exec();
 
       // Stop here if it not all already signed
