@@ -74,6 +74,27 @@ export class BatchJob {
     return null;
   }
 
+  private async setNetworkParameters(): Promise<void> {
+    // Set parameters for TxBody
+    const latestEpoch = (await this.blockfrostClient.epochsLatest()).epoch;
+    const latestEpochParameters = await this.blockfrostClient.epochsParameters(latestEpoch);
+    const minFee = Number(latestEpochParameters.min_fee_b);
+    const feePerByte = Number(latestEpochParameters.min_fee_a);
+    const maxTxSize = Number(latestEpochParameters.max_tx_size);
+    const maxPossibleFee = minFee + feePerByte * maxTxSize;
+    const timeToLiveSecond = Number(this.configService.getOrThrow('TRANSACTIONS_TIME_TO_LIVE'));
+    const slotTTL = timeToLiveSecond + Number((await this.blockfrostClient.blocksLatest()).slot);
+
+    this.networkParams = {
+      minFee,
+      feePerByte,
+      maxTxSize,
+      maxPossibleFee,
+      timeToLiveSecond,
+      slotTTL,
+    };
+  }
+
   private async collectTransactionsInQueueFromDatabase(): Promise<void> {
     // Collect Transaction object from Redis
     this.transactionKeyList = await this.redisClient.lRange(
@@ -94,27 +115,6 @@ export class BatchJob {
 
       this.transactionObjList.push(obj as Transaction);
     }
-  }
-
-  private async setNetworkParameters(): Promise<void> {
-    // Set parameters for TxBody
-    const latestEpoch = (await this.blockfrostClient.epochsLatest()).epoch;
-    const latestEpochParameters = await this.blockfrostClient.epochsParameters(latestEpoch);
-    const minFee = Number(latestEpochParameters.min_fee_b);
-    const feePerByte = Number(latestEpochParameters.min_fee_a);
-    const maxTxSize = Number(latestEpochParameters.max_tx_size);
-    const maxPossibleFee = minFee + feePerByte * maxTxSize;
-    const timeToLiveSecond = Number(this.configService.getOrThrow('TRANSACTIONS_TIME_TO_LIVE'));
-    const slotTTL = timeToLiveSecond + Number((await this.blockfrostClient.blocksLatest()).slot);
-
-    this.networkParams = {
-      minFee,
-      feePerByte,
-      maxTxSize,
-      maxPossibleFee,
-      timeToLiveSecond,
-      slotTTL,
-    };
   }
 
   private async buildBatchedTransaction(): Promise<void> {
@@ -142,7 +142,7 @@ export class BatchJob {
     await this.createTxId(txBody);
 
     this.logger.debug(
-      `CborHex Full Transaction: ${this.transactionFullCborBuffer.toString('hex')}`,
+      // `CborHex Full Transaction: ${this.transactionFullCborBuffer.toString('hex')}`,
       `TxId: ${this.txId}`,
       `Max Possible Fee: ${this.networkParams.maxPossibleFee}`,
       `Calculated Total Fee: ${feeTotal}`,
@@ -184,6 +184,8 @@ export class BatchJob {
       ]);
       witnessSetCount = witnessSetCount + Number(new Set(changeAddrListHex).size);
     }
+
+    this.logger.debug(`TxBody: ${transactionBody}`, `Fee per participant: ${feePerParticipant}`);
 
     transactionBody.set(0, inputs).set(1, outputs).set(2, feeTotal).set(3, slotTTL);
 
