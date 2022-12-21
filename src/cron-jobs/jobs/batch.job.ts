@@ -29,8 +29,8 @@ export class BatchJob {
   private readonly logger = new Logger(BatchJob.name);
 
   private networkParams: NetworkParams;
-  private transactionKeyList: string[] = [];
-  private transactionObjList: Transaction[] = [];
+  private transactionKeyList: string[];
+  private transactionObjList: Transaction[];
   private transactionFullCborBuffer: Buffer;
   private txId: string;
 
@@ -45,6 +45,12 @@ export class BatchJob {
    * Batch multiple transactions into one transaction
    */
   async batchTransactions() {
+    this.networkParams = {} as NetworkParams;
+    this.transactionKeyList = [];
+    this.transactionObjList = [];
+    this.transactionFullCborBuffer = Buffer.alloc(0, 'empty');
+    this.txId = '';
+
     try {
       const notEnoughTransactionsInQueue = await this.checkIfNotEnoughTransactionsInQueue();
       if (notEnoughTransactionsInQueue) {
@@ -184,8 +190,6 @@ export class BatchJob {
       ]);
       witnessSetCount = witnessSetCount + Number(new Set(changeAddrListHex).size);
     }
-
-    this.logger.debug(`TxBody: ${transactionBody}`, `Fee per participant: ${feePerParticipant}`);
 
     transactionBody.set(0, inputs).set(1, outputs).set(2, feeTotal).set(3, slotTTL);
 
