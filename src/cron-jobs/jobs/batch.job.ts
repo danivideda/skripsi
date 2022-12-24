@@ -103,23 +103,20 @@ export class BatchJob {
 
   private async collectTransactionsInQueueFromDatabase(): Promise<void> {
     // Collect Transaction object from Redis
-    this.transactionKeyList = await this.redisClient.lRange(
+    this.transactionKeyList = await this.redisClient.LRANGE(
       DTransactionsQueueKey,
       0,
       Number(this.configService.getOrThrow('BATCHED_TRANSACTION_LIMIT')) - 1,
     );
 
     for (const transactionKey of this.transactionKeyList) {
-      const obj: unknown = (
-        await this.redisClient
-          .multi()
-          .json.get(transactionKey.toString())
-          .json.del(transactionKey.toString())
-          .lPop(DTransactionsQueueKey)
-          .exec()
+      const jsonString: unknown = (
+        await this.redisClient.multi().GET(transactionKey).DEL(transactionKey).LPOP(DTransactionsQueueKey).exec()
       )[0];
 
-      this.transactionObjList.push(obj as Transaction);
+      const obj: Transaction = JSON.parse(jsonString as string);
+
+      this.transactionObjList.push(obj);
     }
   }
 
@@ -257,7 +254,7 @@ export class BatchJob {
     const RedisBatchesKey = `${DBatchesRepoName}:${this.txId}`;
     const redisQuery = this.redisClient
       .multi()
-      .json.SET(RedisBatchesKey, '$', jsonData)
+      .SET(RedisBatchesKey, JSON.stringify(jsonData))
       .expire(RedisBatchesKey, timeToLiveSecond);
 
     for (const transactionKey of this.transactionKeyList) {

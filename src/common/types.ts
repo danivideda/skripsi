@@ -9,6 +9,6 @@ export type Transaction = {
 export type Batch = {
   stakeAddressList: StakeAddress[];
   transactionFullCborHex: string;
-  witnessSignatureList: [string[]];
+  witnessSignatureList: string[];
   signedList: StakeAddress[];
 };

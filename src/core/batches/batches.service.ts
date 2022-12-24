@@ -10,6 +10,7 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { RedisClientType } from 'redis';
+import type { Batch } from '../../common';
 import { REDIS_CLIENT, BLOCKFROST_CLIENT } from '../../common';
 import { UtilsService } from '../../utils/utils.service';
 import type { SignBatchesDto } from './dto';
@@ -36,7 +37,12 @@ export class BatchesService {
       if (!RedisItemBatchKey) {
         throw new InternalServerErrorException();
       }
-      const batchItem: any = await this.redisClient.json.get(RedisItemBatchKey);
+      const batchItemJsonString = await this.redisClient.GET(RedisItemBatchKey);
+      if (!batchItemJsonString) {
+        throw new InternalServerErrorException();
+      }
+
+      const batchItem: Batch = JSON.parse(batchItemJsonString);
 
       // Check if address can sign this batch
       if (!batchItem.stakeAddressList.includes(stakeAddressHex)) {
@@ -50,11 +56,9 @@ export class BatchesService {
       }
 
       // Update and insert signature into redis
-      const updatedBatchStatus: any = await this.redisClient
-        .multi()
-        .json.arrAppend(RedisItemBatchKey, '$.witnessSignatureList', signatureCborHex)
-        .json.arrAppend(RedisItemBatchKey, '$.signedList', stakeAddressHex)
-        .exec();
+      batchItem.witnessSignatureList.push(signatureCborHex);
+      batchItem.signedList.push(stakeAddressHex);
+      const updatedBatchStatus: any = await this.redisClient.SET(RedisItemBatchKey, JSON.stringify(batchItem));
 
       // Stop here if it not all already signed
       if (updatedBatchStatus[0][0] < batchLimit) {
@@ -62,7 +66,12 @@ export class BatchesService {
       }
 
       // Continue here if all is signed
-      const updatedBatchItem: any = await this.redisClient.json.get(RedisItemBatchKey);
+      const updatedBatchItemJsonString = await this.redisClient.GET(RedisItemBatchKey);
+      if (!updatedBatchItemJsonString) {
+        throw new InternalServerErrorException();
+      }
+
+      const updatedBatchItem: Batch = JSON.parse(updatedBatchItemJsonString);
 
       // Collect signatures to a single array
       const allSignatureList = [];
@@ -80,12 +89,9 @@ export class BatchesService {
 
       // Send to redis
       const transactionFullEncoded = await this.utilsService.encodeCbor(transactionFullObj);
+      updatedBatchItem.transactionFullCborHex = transactionFullEncoded.toString('hex');
       this.logger.debug(transactionFullEncoded.toString('hex'));
-      const saveToRedis = await this.redisClient.json.set(
-        RedisItemBatchKey,
-        '$.transactionFullCborHex',
-        transactionFullEncoded.toString('hex'),
-      );
+      const saveToRedis = await this.redisClient.SET(RedisItemBatchKey, JSON.stringify(updatedBatchItem));
 
       this.logger.debug(
         `Saved to redis: ${saveToRedis}`,
