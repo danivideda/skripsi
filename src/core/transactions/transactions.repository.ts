@@ -21,17 +21,17 @@ export class TransactionsRepository {
     };
   }
 
-  private async checkIfKeyAlreadyExist(DTransactionItemKey: string) {
-    if (await this.redisClient.json.GET(DTransactionItemKey)) {
-      throw new RedisKeyExistsException(`Key '${DTransactionItemKey}' already exists.`);
+  private async checkIfKeyAlreadyExist(DTransactionsItemKey: string) {
+    if (await this.redisClient.GET(DTransactionsItemKey)) {
+      throw new RedisKeyExistsException(`Key '${DTransactionsItemKey}' already exists.`);
     }
   }
 
-  private async saveToDatabase(DTransactionItemKey: string, transaction: Transaction) {
+  private async saveToDatabase(DTransactionsItemKey: string, transaction: Transaction) {
     await this.redisClient
       .multi()
-      .json.SET(DTransactionItemKey, '$', transaction)
-      .RPUSH(DTransactionsQueueKey, DTransactionItemKey)
+      .SET(DTransactionsItemKey, JSON.stringify(transaction))
+      .RPUSH(DTransactionsQueueKey, DTransactionsItemKey)
       .exec();
   }
 }
