@@ -13,6 +13,7 @@ export default function FormComponent() {
 
   function onAmountChange(e: ChangeEvent<HTMLInputElement>) {
     console.log(parseFloat(e.target.value.replace(/,/g, '')));
+    console.log(parseFloat(e.target.value.replace(/,/g, '')) * 1000000);
   }
 
   return (
