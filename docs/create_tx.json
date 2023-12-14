@@ -1,0 +1,8 @@
+{
+  "stakeAddressHex": "e0b...834",
+  "destinationAddressBech32": "addr_test1qra...8q08scm7", 
+  "utxos": [
+    "82825...8341a05f5e100"
+  ],
+  "lovelace": 10000000
+} 
