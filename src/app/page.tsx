@@ -1,5 +1,6 @@
 import { IBM_Plex_Serif } from 'next/font/google';
 import FormComponent from './components/FormComponent';
+import WalletComponent from './components/WalletComponent';
 
 const ibm_500 = IBM_Plex_Serif({
   weight: '500',
@@ -33,6 +34,7 @@ export default function Home() {
           </p>
           <div className="flex flex-col items-center justify-start p-5 bg-white w-3/4 min-h-[500px] my-5 rounded-md drop-shadow-xl mx-auto">
             <FormComponent />
+            <WalletComponent />
           </div>
         </div>
       </div>

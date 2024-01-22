@@ -20,15 +20,17 @@ export default function FormComponent() {
     <>
       <form action="#" method="post" className="w-full">
         <div className="mb-5">
-          <h1 className="text-md mb-2 p-1">address</h1>
+          <h1 className="text-md mb-2 p-1 font-semibold">
+            Destination Address
+          </h1>
           <textarea
-            className="resize-none rounded-md shadow-inner border mx-auto w-full p-2"
+            className="resize-none h-24 rounded-md shadow-inner border mx-auto w-full p-2"
             value={addrPlaceHolder}
             onChange={(e) => console.log(e.target.value)}
           ></textarea>
         </div>
         <div className="mb-5">
-          <h1 className="text-md mb-2 p-1">amount in ADA</h1>
+          <h1 className="text-md mb-2 p-1 font-semibold">Amount in ADA</h1>
           <NumericFormat
             className="resize-none rounded-md shadow-inner border mx-auto w-full p-2"
             allowLeadingZeros
