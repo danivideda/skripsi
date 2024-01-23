@@ -33,7 +33,6 @@ export default function FormComponent() {
           <h1 className="text-md mb-2 p-1 font-semibold">Amount in ADA</h1>
           <NumericFormat
             className="resize-none rounded-md shadow-inner border mx-auto w-full p-2"
-            allowLeadingZeros
             thousandSeparator=","
             placeholder="0.000000"
             allowNegative={false}

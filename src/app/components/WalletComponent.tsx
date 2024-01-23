@@ -1,10 +1,11 @@
 'use client';
 
 import { useState } from 'react';
+import { NumericFormat } from 'react-number-format';
 import * as cbor from 'cbor';
 
 export default function WalletComponent() {
-  const [balance, setBalance] = useState('');
+  const [balance, setBalance] = useState(0.0);
   const [userAddress, setUserAddress] = useState('');
   const [buttonState, setButtonState] = useState('');
 
@@ -22,12 +23,12 @@ export default function WalletComponent() {
   async function handleClickDisconnectWallet() {
     setButtonState('loading');
     await new Promise((resolve) => setTimeout(resolve, 1000));
-    setBalance('');
+    setBalance(0.0);
     setUserAddress('');
     setButtonState('');
   }
 
-  if (balance !== '') {
+  if (balance !== 0.0) {
     return (
       <>
         <button
@@ -45,7 +46,18 @@ export default function WalletComponent() {
             : 'Disconnect Wallet'}
         </button>
         <div className="mx-auto mt-5 w-full bg-gray-100 rounded border border-primary p-2">
-          <div>Balance: {balance}</div>
+          <div>
+            Balance:{' '}
+            <NumericFormat
+              displayType="text"
+              thousandSeparator=","
+              allowNegative={false}
+              fixedDecimalScale
+              decimalScale={6}
+              value={balance / 10 ** 6}
+            />{' '}
+            ADA
+          </div>
           <div className="break-words">Address: {userAddress}</div>
         </div>
       </>
