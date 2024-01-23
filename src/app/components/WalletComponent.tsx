@@ -32,7 +32,12 @@ export default function WalletComponent() {
       <>
         <button
           type="button"
-          className="mx-auto mt-5 w-full bg-gray-100 rounded border border-primary p-2"
+          disabled={buttonState === 'connecting'}
+          className={
+            'mx-auto mt-5 w-full bg-gray-100 rounded border border-primary p-2' +
+            ' ' +
+            (buttonState === 'connecting' ? 'text-gray-300' : '')
+          }
           onClick={handleClick}
         >
           {buttonState === 'connecting'
