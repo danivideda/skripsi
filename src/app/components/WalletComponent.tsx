@@ -12,10 +12,10 @@ export default function WalletComponent() {
   async function handleClickConnectWallet() {
     setButtonState('loading');
     const walletApi = await window.cardano.eternl.enable();
-    const balance = await walletApi.getBalance();
+    const balance = await cbor.decode(await walletApi.getBalance());
     const userAddress = (await walletApi.getRewardAddresses())[0];
 
-    setBalance(cbor.decode(balance)[0]);
+    setBalance(balance === typeof Array ? balance[0] : balance);
     setUserAddress(userAddress);
     setButtonState('');
   }
