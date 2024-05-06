@@ -1,32 +1,48 @@
 'use client';
 
-import { ChangeEvent, useState } from 'react';
+import { ChangeEvent, FormEvent, useState } from 'react';
 import { NumericFormat } from 'react-number-format';
 
 export default function FormComponent() {
   const [address, setAddress] = useState('');
 
-  const [amount, setAmount] = useState(0.0);
+  const [amount, setAmount] = useState(0);
 
   const addrPlaceHolder =
-    'addr1qy9wh2lseepj9edsh6ae22ad0x0njz2zv8d5pe0jxtfl2cy9ph5tqn0eplz8m3dlgvrcu7mwwehwz35934z7hlpj9wdqwdvdku';
+    'addr_test1qpgkdndedlklzkr8gkpaa8qulavjehrlee86k22jdrva9vf0d5dxpdatxft8ka436d8z4765fvacmdcxv7kjss08sg8qshp8gc';
 
   function onAmountChange(e: ChangeEvent<HTMLInputElement>) {
-    console.log(parseFloat(e.target.value.replace(/,/g, '')));
-    console.log(parseFloat(e.target.value.replace(/,/g, '')) * 1000000);
+    const cleanString = e.target.value.replace(/,/g, '');
+    const amountLovelace = parseFloat(cleanString) * 1_000_000;
+    console.log('Amount in Lovelace: ', amountLovelace);
+
+    setAmount(amountLovelace);
+  }
+
+  function onAddressChange(e: ChangeEvent<HTMLTextAreaElement>) {
+    const addressString = e.target.value;
+    console.log(addressString);
+
+    setAddress(addressString);
+  }
+
+  function onSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    console.log("Form submitted")
   }
 
   return (
     <>
-      <form action="#" method="post" className="w-full">
+      <form action="#" method="post" className="w-full" onSubmit={onSubmit}>
         <div className="mb-5">
           <h1 className="text-md mb-2 p-1 font-semibold">
             Destination Address
           </h1>
           <textarea
             className="resize-none h-24 rounded-md shadow-inner border mx-auto w-full p-2"
-            value={addrPlaceHolder}
-            onChange={(e) => console.log(e.target.value)}
+            // value={addrPlaceHolder}
+            placeholder={addrPlaceHolder}
+            onChange={onAddressChange}
           ></textarea>
         </div>
         <div className="mb-5">
