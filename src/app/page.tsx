@@ -32,9 +32,25 @@ export default function Home() {
             ‘transactions-within-transaction’ capability on <u>Cardano</u> to
             reduce your transaction fees by around <b>80%</b>{' '}
           </p>
+        </div>
+        <div className="flex flex-row justify-between w-full gap-x-5">
           <div className="flex flex-col items-center justify-start p-5 bg-white w-3/4 min-h-[500px] my-5 rounded-md drop-shadow-xl mx-auto">
+            <h1 className="text-xl w-full text-center">
+              Create New Transaction
+            </h1>
             <FormComponent />
             <WalletComponent />
+          </div>
+          <div className="flex flex-col items-center justify-start p-5 bg-white w-3/4 min-h-[500px] my-5 rounded-md drop-shadow-xl mx-auto">
+            <h1 className="text-lg">Transaction Aggregation List</h1>
+          </div>
+        </div>
+        <div className="flex flex-row justify-between w-full gap-x-5">
+          <div className="flex flex-col items-center justify-start p-5 bg-white w-3/4 min-h-[500px] my-5 rounded-md drop-shadow-xl mx-auto">
+            <h1 className="text-lg">Sign Aggregated Transaction</h1>
+          </div>
+          <div className="flex flex-col items-center justify-start p-5 bg-white w-3/4 min-h-[500px] my-5 rounded-md drop-shadow-xl mx-auto">
+            <h1 className="text-lg">Submit Aggregated Transaction</h1>
           </div>
         </div>
       </div>
