@@ -5,8 +5,8 @@ import { NumericFormat } from 'react-number-format';
 
 export default function FormComponent() {
   const [address, setAddress] = useState('');
-
   const [amount, setAmount] = useState(0);
+  const [errors, setErrors] = useState({} as {name: string, value: string})
 
   const addrPlaceHolder =
     'addr_test1qpgkdndedlklzkr8gkpaa8qulavjehrlee86k22jdrva9vf0d5dxpdatxft8ka436d8z4765fvacmdcxv7kjss08sg8qshp8gc';
@@ -21,14 +21,12 @@ export default function FormComponent() {
 
   function onAddressChange(e: ChangeEvent<HTMLTextAreaElement>) {
     const addressString = e.target.value;
-    console.log(addressString);
-
     setAddress(addressString);
   }
 
   function onSubmit(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault()
-    console.log("Form submitted")
+    e.preventDefault();
+    console.log('Form submitted');
   }
 
   return (
