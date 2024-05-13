@@ -28,3 +28,8 @@ type WalletInstance = {
 type ExperimentalFeatures = {
   getCollateral(): Promise<string[] | undefined>;
 };
+
+type UnspentTransactionOutput = {
+  transactionInput: [Uint8Array, number],
+  transactionOutput: [Uint8Array, number]
+}
