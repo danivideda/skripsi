@@ -3,7 +3,7 @@
 import { ChangeEvent, FormEvent, useState } from 'react';
 import { NumericFormat } from 'react-number-format';
 
-export default function FormComponent() {
+export default function Form() {
   const [address, setAddress] = useState('');
   const [amount, setAmount] = useState(0);
   const [errors, setErrors] = useState({} as {name: string, value: string})

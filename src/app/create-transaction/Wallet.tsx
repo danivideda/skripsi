@@ -1,12 +1,20 @@
 'use client';
 
-import { useState } from 'react';
+import { Dispatch, SetStateAction, useState } from 'react';
 import { NumericFormat } from 'react-number-format';
 import * as cbor from 'cbor';
+import { UtxoList } from '../types/common';
+import { UnspentTransactionOutput } from '../types/wallet';
 
 type Utxo = { utxoString: string; txOutputs: UnspentTransactionOutput };
 
-export default function WalletComponent() {
+export default function Wallet({
+  setUtxoList,
+  utxoList,
+}: {
+  setUtxoList: Dispatch<SetStateAction<UtxoList>>;
+  utxoList: string[];
+}) {
   const [balance, setBalance] = useState(0.0);
   const [userAddress, setUserAddress] = useState('');
   const [buttonState, setButtonState] = useState('');
@@ -94,12 +102,6 @@ export default function WalletComponent() {
                 </li>
               );
             })}
-            {/* <li className="">
-              {Buffer.from(utxos[0].txOutputs.transactionInput[0]).toString(
-                'hex',
-              )}
-              #{utxos[0].txOutputs.transactionInput[1]}
-            </li> */}
           </ol>
         </div>
       </>

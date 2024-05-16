@@ -1,8 +1,10 @@
-interface Window {
-  cardano: Cardano;
+declare global {
+  interface Window {
+    cardano: Cardano;
+  }
 }
 
-type Cardano = {
+export type Cardano = {
   [key: string]: {
     name: string;
     icon: string;
@@ -11,7 +13,7 @@ type Cardano = {
   };
 };
 
-type WalletInstance = {
+export type WalletInstance = {
   experimental: ExperimentalFeatures;
   getBalance(): Promise<string>;
   getChangeAddress(): Promise<string>;
@@ -20,16 +22,16 @@ type WalletInstance = {
   getUnusedAddresses(): Promise<string[]>;
   getUsedAddresses(): Promise<string[]>;
   getUtxos(): Promise<string[] | undefined>;
-  signData(address: string, payload: string): Promise<DataSignature>;
+  signData(address: string, payload: string): Promise<any>;
   signTx(tx: string, partialSign: boolean): Promise<string>;
   submitTx(tx: string): Promise<string>;
 };
 
-type ExperimentalFeatures = {
+export type ExperimentalFeatures = {
   getCollateral(): Promise<string[] | undefined>;
 };
 
-type UnspentTransactionOutput = {
-  transactionInput: [Uint8Array, number],
-  transactionOutput: [Uint8Array, number]
-}
+export type UnspentTransactionOutput = {
+  transactionInput: [Uint8Array, number];
+  transactionOutput: [Uint8Array, number];
+};
