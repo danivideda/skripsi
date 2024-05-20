@@ -1,20 +1,20 @@
-import { Dispatch, SetStateAction, useState } from 'react';
+import { useState } from 'react';
 import { NumericFormat } from 'react-number-format';
 import * as cbor from 'cbor';
 import { Utxo, UnspentTransactionOutput } from '../types';
+import { bufferToHexString, truncate } from '../helper';
 
 export default function Wallet({
-  setUtxoList,
-  utxoList,
+  addUtxoCallback,
+  deleteUtxoCallback,
 }: {
-  setUtxoList: Dispatch<SetStateAction<Utxo[]>>;
-  utxoList: Utxo[];
+  addUtxoCallback: (utxo: Utxo) => void;
+  deleteUtxoCallback: (utxo: Utxo) => void;
 }) {
   const [balance, setBalance] = useState(0.0);
   const [userAddress, setUserAddress] = useState('');
   const [buttonState, setButtonState] = useState('');
   const [utxos, setUtxos] = useState([] as Utxo[]);
-  const [checked, setChecked] = useState(false)
 
   async function handleClickConnectWallet() {
     setButtonState('loading');
@@ -36,7 +36,7 @@ export default function Wallet({
         } as Utxo;
       }),
     );
-    console.log(utxoListDecoded);
+    console.log('Utxo List Decoded: ', utxoListDecoded);
 
     setBalance(balance === typeof Array ? balance[0] : balance);
     setUserAddress(userAddress);
@@ -52,8 +52,6 @@ export default function Wallet({
     setUserAddress('');
     setButtonState('');
   }
-
-  console.log("Is checked??: ", checked)
 
   if (balance !== 0.0) {
     return (
@@ -92,12 +90,21 @@ export default function Wallet({
               return (
                 <li key={utxo_item.utxoString}>
                   {truncate(
-                    Buffer.from(
-                      utxo_item.txOutputs.transactionInput[0],
-                    ).toString('hex'),
+                    bufferToHexString(utxo_item.txOutputs.transactionInput[0]),
                   )}
                   #{utxo_item.txOutputs.transactionInput[1]}
-                  <input type="checkbox" name="select" id="select" onChange={(e) => setChecked(e.target.checked)} />
+                  <input
+                    type="checkbox"
+                    name="select"
+                    id="select"
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        addUtxoCallback(utxo_item);
+                      } else {
+                        deleteUtxoCallback(utxo_item);
+                      }
+                    }}
+                  />
                 </li>
               );
             })}
@@ -121,12 +128,4 @@ export default function Wallet({
       </button>
     );
   }
-}
-
-// helper function
-function truncate(str: string, separator = '...'): string {
-  const first = str.substring(0, 4);
-  const second = str.substring(str.length - 5, str.length - 1);
-
-  return first + separator + second;
 }
