@@ -1,10 +1,12 @@
+'use client'
+
 import { useState } from 'react';
 import Form from './Form';
 import Wallet from './Wallet';
-import { UtxoList } from '../types/common';
+import { Utxo } from '../types';
 
 export default function CreateTransaction() {
-  const [utxoList, setUtxoList] = useState([] as UtxoList);
+  const [utxoList, setUtxoList] = useState([] as Utxo[]);
 
   return (
     <>

@@ -1,5 +1,3 @@
-'use client';
-
 import { ChangeEvent, FormEvent, useState } from 'react';
 import { NumericFormat } from 'react-number-format';
 

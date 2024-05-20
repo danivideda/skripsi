@@ -1,24 +1,20 @@
-'use client';
-
 import { Dispatch, SetStateAction, useState } from 'react';
 import { NumericFormat } from 'react-number-format';
 import * as cbor from 'cbor';
-import { UtxoList } from '../types/common';
-import { UnspentTransactionOutput } from '../types/wallet';
-
-type Utxo = { utxoString: string; txOutputs: UnspentTransactionOutput };
+import { Utxo, UnspentTransactionOutput } from '../types';
 
 export default function Wallet({
   setUtxoList,
   utxoList,
 }: {
-  setUtxoList: Dispatch<SetStateAction<UtxoList>>;
-  utxoList: string[];
+  setUtxoList: Dispatch<SetStateAction<Utxo[]>>;
+  utxoList: Utxo[];
 }) {
   const [balance, setBalance] = useState(0.0);
   const [userAddress, setUserAddress] = useState('');
   const [buttonState, setButtonState] = useState('');
   const [utxos, setUtxos] = useState([] as Utxo[]);
+  const [checked, setChecked] = useState(false)
 
   async function handleClickConnectWallet() {
     setButtonState('loading');
@@ -56,6 +52,8 @@ export default function Wallet({
     setUserAddress('');
     setButtonState('');
   }
+
+  console.log("Is checked??: ", checked)
 
   if (balance !== 0.0) {
     return (
@@ -99,6 +97,7 @@ export default function Wallet({
                     ).toString('hex'),
                   )}
                   #{utxo_item.txOutputs.transactionInput[1]}
+                  <input type="checkbox" name="select" id="select" onChange={(e) => setChecked(e.target.checked)} />
                 </li>
               );
             })}
