@@ -22,6 +22,10 @@ export default function CreateTransaction() {
     setUtxoList(newUtxoList);
   }
 
+  function clearUtxoList() {
+    setUtxoList([] as Utxo[]);
+  }
+
   console.log('UtxoList: ', utxoList);
 
   return (
@@ -36,23 +40,11 @@ export default function CreateTransaction() {
                 bufferToHexString(utxo_item.txOutputs.transactionInput[0]),
               )}
               #{utxo_item.txOutputs.transactionInput[1]}
-              <input
-                type="checkbox"
-                name="select"
-                id="select"
-                onChange={(e) => {
-                  if (e.target.checked) {
-                    addUtxo(utxo_item);
-                  } else {
-                    deleteUtxo(utxo_item);
-                  }
-                }}
-              />
             </li>
           );
         })}
       </ol>
-      <Wallet addUtxoCallback={addUtxo} deleteUtxoCallback={deleteUtxo} />
+      <Wallet addUtxoCallback={addUtxo} deleteUtxoCallback={deleteUtxo} clearUtxoListCallback={clearUtxoList} />
     </>
   );
 }

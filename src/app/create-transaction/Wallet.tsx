@@ -7,9 +7,11 @@ import { bufferToHexString, truncate } from '../helper';
 export default function Wallet({
   addUtxoCallback,
   deleteUtxoCallback,
+  clearUtxoListCallback,
 }: {
   addUtxoCallback: (utxo: Utxo) => void;
   deleteUtxoCallback: (utxo: Utxo) => void;
+  clearUtxoListCallback: () => void;
 }) {
   const [balance, setBalance] = useState(0.0);
   const [userAddress, setUserAddress] = useState('');
@@ -51,6 +53,7 @@ export default function Wallet({
     setBalance(0.0);
     setUserAddress('');
     setButtonState('');
+    clearUtxoListCallback();
   }
 
   if (balance !== 0.0) {
@@ -89,10 +92,12 @@ export default function Wallet({
             {utxos.map((utxo_item) => {
               return (
                 <li key={utxo_item.utxoString}>
+                  <span className="font-semibold">UTXO</span>:{' '}
                   {truncate(
                     bufferToHexString(utxo_item.txOutputs.transactionInput[0]),
                   )}
-                  #{utxo_item.txOutputs.transactionInput[1]}
+                  #{utxo_item.txOutputs.transactionInput[1]}, <span className='font-semibold'>amount</span>:{' '}
+                  {utxo_item.txOutputs.transactionOutput[1]} lovelace{' '}
                   <input
                     type="checkbox"
                     name="select"
