@@ -31,20 +31,12 @@ export default function CreateTransaction() {
   return (
     <>
       <h1 className="text-xl w-full text-center">Create New Transaction</h1>
-      <Form />
-      <ol className="list-decimal list-inside">
-        {utxoList.map((utxo_item) => {
-          return (
-            <li key={utxo_item.utxoString}>
-              {truncate(
-                bufferToHexString(utxo_item.txOutputs.transactionInput[0]),
-              )}
-              #{utxo_item.txOutputs.transactionInput[1]}
-            </li>
-          );
-        })}
-      </ol>
-      <Wallet addUtxoCallback={addUtxo} deleteUtxoCallback={deleteUtxo} clearUtxoListCallback={clearUtxoList} />
+      <Form utxoList={utxoList} />
+      <Wallet
+        addUtxoCallback={addUtxo}
+        deleteUtxoCallback={deleteUtxo}
+        clearUtxoListCallback={clearUtxoList}
+      />
     </>
   );
 }

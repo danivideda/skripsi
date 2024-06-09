@@ -31,7 +31,11 @@ export type ExperimentalFeatures = {
   getCollateral(): Promise<string[] | undefined>;
 };
 
+// type transactionId = Uint8Array
+// type index = number
+// type address = Uint8Array
+// type amount = number
 export type UnspentTransactionOutput = {
-  transactionInput: [Uint8Array, number];
-  transactionOutput: [Uint8Array, number];
+  transactionInput: [transactionId: Uint8Array, index: number];
+  transactionOutput: [address: Uint8Array, amount: number];
 };
