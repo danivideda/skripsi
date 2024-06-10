@@ -92,7 +92,7 @@ export default function Wallet({
             />{' '}
             ADA
           </div>
-          <div className="break-words">Address: {userAddress}</div>
+          <div className="break-all">Address: {userAddress}</div>
 
           <ol className="list-decimal list-inside">
             {utxos.map((utxo_item) => {
