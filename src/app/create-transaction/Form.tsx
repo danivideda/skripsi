@@ -2,7 +2,13 @@ import { ChangeEvent, FormEvent, useState } from 'react';
 import { NumericFormat } from 'react-number-format';
 import { Utxo } from '../types';
 
-export default function Form({ utxoList }: { utxoList: Utxo[] }) {
+export default function Form({
+  utxoList,
+  isWalletConnected,
+}: {
+  utxoList: Utxo[];
+  isWalletConnected: boolean;
+}) {
   const [address, setAddress] = useState('');
   const [amount, setAmount] = useState(0);
   const [errors, setErrors] = useState({} as { name: string; value: string });
@@ -44,6 +50,7 @@ export default function Form({ utxoList }: { utxoList: Utxo[] }) {
             Destination Address
           </h1>
           <textarea
+            disabled={!isWalletConnected}
             className="resize-none h-24 rounded-md shadow-inner border mx-auto w-full p-2"
             // value={addrPlaceHolder}
             placeholder={addrPlaceHolder}
@@ -59,6 +66,7 @@ export default function Form({ utxoList }: { utxoList: Utxo[] }) {
             allowNegative={false}
             fixedDecimalScale
             decimalScale={6}
+            disabled={!isWalletConnected}
             onChange={onAmountChange}
           />
           {/* <input
@@ -83,7 +91,12 @@ export default function Form({ utxoList }: { utxoList: Utxo[] }) {
         </div>
         <button
           type="submit"
-          className="mx-auto w-full bg-purple-300 rounded border border-primary p-2"
+          disabled={!isWalletConnected}
+          className={
+            'mx-auto w-full rounded border border-primary p-2' +
+            ' ' +
+            (isWalletConnected ? 'bg-purple-300 ' : 'bg-gray-100 text-gray-300')
+          }
         >
           Create Transaction
         </button>

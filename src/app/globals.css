@@ -1,3 +1,10 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+button:disabled,
+input:disabled,
+textarea:disabled {
+  cursor: not-allowed;
+  pointer-events: all !important;
+}

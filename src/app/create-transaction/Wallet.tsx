@@ -8,10 +8,14 @@ export default function Wallet({
   addUtxoCallback,
   deleteUtxoCallback,
   clearUtxoListCallback,
+  setIsWalletConnectedStatusCallback,
+  isWalletConnected
 }: {
   addUtxoCallback: (utxo: Utxo) => void;
   deleteUtxoCallback: (utxo: Utxo) => void;
   clearUtxoListCallback: () => void;
+  setIsWalletConnectedStatusCallback: (isConnected: boolean) => void;
+  isWalletConnected: boolean
 }) {
   const [balance, setBalance] = useState(0.0);
   const [userAddress, setUserAddress] = useState('');
@@ -44,6 +48,7 @@ export default function Wallet({
     setUserAddress(userAddress);
     setButtonState('');
     setUtxos(utxoListDecoded);
+    setIsWalletConnectedStatusCallback(true);
   }
 
   async function handleClickDisconnectWallet() {
@@ -54,9 +59,10 @@ export default function Wallet({
     setUserAddress('');
     setButtonState('');
     clearUtxoListCallback();
+    setIsWalletConnectedStatusCallback(false);
   }
 
-  if (balance !== 0.0) {
+  if (isWalletConnected) {
     return (
       <>
         <button
@@ -96,7 +102,8 @@ export default function Wallet({
                   {truncate(
                     bufferToHexString(utxo_item.txOutputs.transactionInput[0]),
                   )}
-                  #{utxo_item.txOutputs.transactionInput[1]}, <span className='font-semibold'>amount</span>:{' '}
+                  #{utxo_item.txOutputs.transactionInput[1]},{' '}
+                  <span className="font-semibold">amount</span>:{' '}
                   {utxo_item.txOutputs.transactionOutput[1]} lovelace{' '}
                   <input
                     type="checkbox"
@@ -123,7 +130,7 @@ export default function Wallet({
         type="button"
         disabled={buttonState === 'loading'}
         className={
-          'mx-auto mt-5 w-full bg-gray-100 rounded border border-primary p-2' +
+          'mx-auto mt-5 w-full bg-green-300 rounded border border-primary p-2' +
           ' ' +
           (buttonState === 'loading' ? 'text-gray-300' : '')
         }
