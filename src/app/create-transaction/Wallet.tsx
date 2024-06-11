@@ -8,14 +8,16 @@ export default function Wallet({
   addUtxoCallback,
   deleteUtxoCallback,
   clearUtxoListCallback,
-  setIsWalletConnectedStatusCallback,
-  isWalletConnected
+  setIsWalletConnectedCallback,
+  isWalletConnected,
+  setStakeAddressHexCallback,
 }: {
   addUtxoCallback: (utxo: Utxo) => void;
   deleteUtxoCallback: (utxo: Utxo) => void;
   clearUtxoListCallback: () => void;
-  setIsWalletConnectedStatusCallback: (isConnected: boolean) => void;
-  isWalletConnected: boolean
+  setIsWalletConnectedCallback: (isConnected: boolean) => void;
+  isWalletConnected: boolean;
+  setStakeAddressHexCallback: (stakeAddressHex: string) => void;
 }) {
   const [balance, setBalance] = useState(0.0);
   const [userAddress, setUserAddress] = useState('');
@@ -47,7 +49,8 @@ export default function Wallet({
     setUserAddress(userAddress);
     setButtonState('');
     setUtxos(utxoListDecoded);
-    setIsWalletConnectedStatusCallback(true);
+    setStakeAddressHexCallback(userAddress);
+    setIsWalletConnectedCallback(true);
   }
 
   async function handleClickDisconnectWallet() {
@@ -58,7 +61,8 @@ export default function Wallet({
     setUserAddress('');
     setButtonState('');
     clearUtxoListCallback();
-    setIsWalletConnectedStatusCallback(false);
+    setStakeAddressHexCallback('');
+    setIsWalletConnectedCallback(false);
   }
 
   if (isWalletConnected) {

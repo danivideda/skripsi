@@ -9,6 +9,7 @@ import { truncate, bufferToHexString } from '../helper';
 export default function CreateTransaction() {
   const [utxoList, setUtxoList] = useState([] as Utxo[]);
   const [isWalletConnected, setIsWalletConnected] = useState(false);
+  const [stakeAddressHex, setStakeAddressHex] = useState('');
 
   function addUtxo(utxo: Utxo) {
     const newUtxoList = [...utxoList];
@@ -27,21 +28,29 @@ export default function CreateTransaction() {
     setUtxoList([] as Utxo[]);
   }
 
-  function setIsWalletConnectedStatus(isConnected: boolean) {
+  function setIsWalletConnectedCallback(isConnected: boolean) {
     setIsWalletConnected(isConnected);
   }
 
+  function setStakeAddressHexCallback(stakeAddressHex: string) {
+    setStakeAddressHex(stakeAddressHex);
+  }
 
   return (
     <>
       <h1 className="text-xl w-full text-center">Create New Transaction</h1>
-      <Form utxoList={utxoList} isWalletConnected={isWalletConnected} />
+      <Form
+        utxoList={utxoList}
+        isWalletConnected={isWalletConnected}
+        stakeAddressHex={stakeAddressHex}
+      />
       <Wallet
         addUtxoCallback={addUtxo}
         deleteUtxoCallback={deleteUtxo}
         clearUtxoListCallback={clearUtxoList}
-        setIsWalletConnectedStatusCallback={setIsWalletConnectedStatus}
+        setIsWalletConnectedCallback={setIsWalletConnectedCallback}
         isWalletConnected={isWalletConnected}
+        setStakeAddressHexCallback={setStakeAddressHexCallback}
       />
     </>
   );
