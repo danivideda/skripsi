@@ -31,7 +31,6 @@ export default function CreateTransaction() {
     setIsWalletConnected(isConnected);
   }
 
-  console.log('UtxoList: ', utxoList);
 
   return (
     <>

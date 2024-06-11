@@ -42,7 +42,6 @@ export default function Wallet({
         } as Utxo;
       }),
     );
-    console.log('Utxo List Decoded: ', utxoListDecoded);
 
     setBalance(balance === typeof Array ? balance[0] : balance);
     setUserAddress(userAddress);

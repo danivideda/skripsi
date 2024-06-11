@@ -19,7 +19,6 @@ export default function Form({
   function onAmountChange(e: ChangeEvent<HTMLInputElement>) {
     const cleanString = e.target.value.replace(/,/g, '');
     const amountLovelace = parseFloat(cleanString) * 1_000_000;
-    console.log('Amount in Lovelace: ', amountLovelace);
 
     setAmount(amountLovelace);
   }
@@ -29,8 +28,22 @@ export default function Form({
     setAddress(addressString);
   }
 
-  function onSubmit(e: FormEvent<HTMLFormElement>) {
+  async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    // const backendUrl = "http://localhost:3001"
+    // const data = {
+    //   stakeAddressHex: "stake",
+    // destinationAddressBech32: address,
+    // utxos: utxoList,
+    // lovelace: amount
+    // }
+    // const response = await fetch(backendUrl, {
+    //   method: "POST",
+    //   headers: {
+    //     "Content-Type": "application/json",
+    //   },
+    //   body: 
+    // })
     console.log('Form submitted');
   }
 
@@ -91,11 +104,15 @@ export default function Form({
         </div>
         <button
           type="submit"
-          disabled={!isWalletConnected}
+          disabled={
+            !isWalletConnected ||
+            (!(amount > 0) && !(amount < (lovelaceAmountFromUTXOInput() - (2_000_000))))
+          }
           className={
             'mx-auto w-full rounded border border-primary p-2' +
             ' ' +
-            (isWalletConnected ? 'bg-purple-300 ' : 'bg-gray-100 text-gray-300')
+            (isWalletConnected ? '' : 'bg-gray-100 text-gray-300') + ' ' +
+            ((amount > 0 && amount < (lovelaceAmountFromUTXOInput() - (2_000_000))) ? 'bg-purple-300 ' : 'bg-gray-100 text-gray-300')
           }
         >
           Create Transaction
