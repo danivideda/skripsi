@@ -21,6 +21,12 @@ export class TransactionsRepository {
     };
   }
 
+  async checkIfTransactionAlreadyInQueue(stakeAddressHex: string) {
+    const DTransactionItemKey = DTransactionsRepoName.concat(':', stakeAddressHex);
+
+    await this.checkIfKeyAlreadyExist(DTransactionItemKey);
+  }
+
   private async checkIfKeyAlreadyExist(DTransactionsItemKey: string) {
     if (await this.redisClient.GET(DTransactionsItemKey)) {
       throw new RedisKeyExistsException(`Key '${DTransactionsItemKey}' already exists.`);

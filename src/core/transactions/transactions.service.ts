@@ -2,7 +2,7 @@ import { HttpStatus, Injectable, Logger, InternalServerErrorException, BadReques
 import type { Transaction } from '../../common';
 import { RedisKeyExistsException } from '../../common';
 import { UtilsService } from '../../utils/utils.service';
-import type { CreateTransactionDto } from './dto';
+import type { CheckQueueDTO, CreateTransactionDto } from './dto';
 import { TransactionsRepository } from './transactions.repository';
 
 @Injectable()
@@ -25,7 +25,8 @@ export class TransactionsService {
     } catch (error) {
       this.logger.error(error);
       if (error instanceof RedisKeyExistsException) {
-        throw new BadRequestException(error.message);
+        this.logger.error(error.message);
+        throw new BadRequestException('Already in queue');
       } else {
         throw new InternalServerErrorException();
       }
@@ -35,5 +36,20 @@ export class TransactionsService {
     return this.utilsService.createResponse(HttpStatus.CREATED, 'Transaction created', {
       createdTransaction,
     });
+  }
+
+  async checkQueue(body: CheckQueueDTO) {
+    try {
+      await this.transactionsRepository.checkIfTransactionAlreadyInQueue(body.stakeAddressHex);
+
+      return this.utilsService.createResponse(HttpStatus.OK, 'Not in queue');
+    } catch (error) {
+      this.logger.error(error);
+      if (error instanceof RedisKeyExistsException) {
+        return this.utilsService.createResponse(HttpStatus.OK, 'Already in queue');
+      } else {
+        throw new InternalServerErrorException();
+      }
+    }
   }
 }

@@ -11,6 +11,9 @@ async function bootstrap() {
   const port = parseInt(<string>configService.get('PORT'));
 
   app.setGlobalPrefix('/v0');
+  app.enableCors({
+    origin: '*',
+  });
   app.useGlobalPipes(
     new ValidationPipe({
       /** Enable validation when using DTO */

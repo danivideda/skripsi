@@ -10,7 +10,7 @@ import { createHash } from 'crypto';
 export class UtilsService {
   private readonly cbor = cbor;
 
-  createResponse(statusCode: HttpStatus, message: string, data: any) {
+  createResponse(statusCode: HttpStatus, message: string, data?: any) {
     return {
       statusCode,
       message,

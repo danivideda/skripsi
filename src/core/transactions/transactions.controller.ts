@@ -1,5 +1,5 @@
-import { Body, Controller, Post } from '@nestjs/common';
-import { CreateTransactionDto as CreateTransactionDto } from './dto';
+import { Body, Controller, HttpCode, HttpStatus, Post, Res } from '@nestjs/common';
+import { CheckQueueDTO, CreateTransactionDto } from './dto';
 import { TransactionsService } from './transactions.service';
 
 @Controller('transactions')
@@ -9,5 +9,11 @@ export class TransactionsController {
   @Post('create')
   async create(@Body() createTransactionDto: CreateTransactionDto) {
     return await this.transactionService.createTransaction(createTransactionDto);
+  }
+
+  @Post('queue/check')
+  @HttpCode(HttpStatus.OK)
+  async queue(@Body() checkQueueDto: CheckQueueDTO) {
+    return await this.transactionService.checkQueue(checkQueueDto);
   }
 }
