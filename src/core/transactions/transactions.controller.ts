@@ -1,4 +1,4 @@
-import { Body, Controller, HttpCode, HttpStatus, Post, Res } from '@nestjs/common';
+import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
 import { CheckQueueDTO, CreateTransactionDto } from './dto';
 import { TransactionsService } from './transactions.service';
 
