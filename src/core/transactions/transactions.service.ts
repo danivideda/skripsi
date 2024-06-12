@@ -1,4 +1,4 @@
-import { HttpStatus, Injectable, Logger, InternalServerErrorException, BadRequestException } from '@nestjs/common';
+import { HttpStatus, Injectable, Logger, InternalServerErrorException, ForbiddenException } from '@nestjs/common';
 import type { Transaction } from '../../common';
 import { RedisKeyExistsException } from '../../common';
 import { UtilsService } from '../../utils/utils.service';
@@ -25,8 +25,7 @@ export class TransactionsService {
     } catch (error) {
       this.logger.error(error);
       if (error instanceof RedisKeyExistsException) {
-        this.logger.error(error.message);
-        throw new BadRequestException('Already in queue');
+        throw new ForbiddenException('Already in queue');
       } else {
         throw new InternalServerErrorException();
       }
