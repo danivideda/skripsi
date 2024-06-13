@@ -1,6 +1,7 @@
 import React from 'react';
 import CreateTransaction from './create-transaction/CreateTransaction';
 import HeadingSkripsi from './landing-page/HeadingSkripsi';
+import TransactionQueue from './transaction-aggregation-queue/TransactionQueue';
 
 export default function Home() {
   return (
@@ -15,7 +16,8 @@ export default function Home() {
           </ContainerBox>
           {/* item 2 */}
           <ContainerBox>
-            <h1 className="text-lg">Transaction Aggregation List</h1>
+            <h1 className="text-lg">Transaction Aggregation Queue</h1>
+            <TransactionQueue />
           </ContainerBox>
         </div>
 
