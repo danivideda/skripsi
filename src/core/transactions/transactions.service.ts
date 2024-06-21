@@ -51,4 +51,8 @@ export class TransactionsService {
       }
     }
   }
+
+  async getQueueList() {
+    return await this.transactionsRepository.getTransactionListInQueue();
+  }
 }

@@ -27,6 +27,20 @@ export class TransactionsRepository {
     await this.checkIfKeyAlreadyExist(DTransactionItemKey);
   }
 
+  async getTransactionListInQueue() {
+    const queueList = await this.redisClient.LRANGE(DTransactionsQueueKey, 0, 20);
+    const populated = await Promise.all(
+      queueList.map(async (item) => {
+        const parsedItem = JSON.parse((await this.redisClient.GET(item)) as string);
+        return { stakeAddress: item.replace(DTransactionsRepoName + ':', ''), ...parsedItem };
+      }),
+    );
+
+    return {
+      queue_list: populated,
+    };
+  }
+
   private async checkIfKeyAlreadyExist(DTransactionsItemKey: string) {
     if (await this.redisClient.GET(DTransactionsItemKey)) {
       throw new RedisKeyExistsException(`Key '${DTransactionsItemKey}' already exists.`);
