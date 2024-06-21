@@ -1,9 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import CreateTransaction from './create-transaction/CreateTransaction';
 import HeadingSkripsi from './landing-page/HeadingSkripsi';
 import TransactionQueue from './transaction-aggregation-queue/TransactionQueue';
+import { WalletHelper } from './types';
 
 export default function Home() {
+  const [wallet, setWallet] = useState({} as WalletHelper);
+
   return (
     <div className="container mx-auto min-h-screen">
       <div className="flex flex-col min-h-screen justify-center items-center">
