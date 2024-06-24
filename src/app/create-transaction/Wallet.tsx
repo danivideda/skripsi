@@ -27,6 +27,29 @@ export default function Wallet({
   async function handleClickConnectWallet() {
     setButtonState('loading');
     const walletApi = await window.cardano.eternl.enable();
+
+    async function checkInQueue() {
+      const url = `${process.env.backendUrl}/transactions/queue`;
+      const response = await fetch(url, {
+        method: 'GET',
+        mode: 'cors',
+      });
+      const body = await response.json();
+      return body.message === 'Not in queue' ? 'available' : 'in_queue';
+    }
+
+    if ((await checkInQueue()) === 'in_queue') {
+      const balance = await cbor.decode(await walletApi.getBalance());
+      const userAddress = (await walletApi.getRewardAddresses())[0];
+      setBalance(balance === typeof Array ? balance[0] : balance);
+      setUserAddress(userAddress);
+      setButtonState('');
+      setStakeAddressHexCallback(userAddress);
+      setIsWalletConnectedCallback(true);
+
+      return;
+    }
+
     const balance = await cbor.decode(await walletApi.getBalance());
     const userAddress = (await walletApi.getRewardAddresses())[0];
     const utxoListString = (await walletApi.getUtxos()) ?? [];
