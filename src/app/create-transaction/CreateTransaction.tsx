@@ -18,9 +18,7 @@ export default function CreateTransaction() {
   }
 
   function deleteUtxo(utxo: Utxo) {
-    const newUtxoList = utxoList.filter(
-      (utxo_item) => utxo_item.utxoString !== utxo.utxoString,
-    );
+    const newUtxoList = utxoList.filter((utxo_item) => utxo_item.utxoString !== utxo.utxoString);
     setUtxoList(newUtxoList);
   }
 

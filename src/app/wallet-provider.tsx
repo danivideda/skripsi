@@ -19,13 +19,10 @@ export const WalletContext = createContext<WalletContextType>({
 
 export default function WalletProvider({ children }: { children: ReactNode }) {
   const [walletApi, setWalletApi] = useState<WalletInstance | null>(null);
-  const [walletStatus, setWalletStatus] =
-    useState<WalletStatus>('disconnected');
+  const [walletStatus, setWalletStatus] = useState<WalletStatus>('disconnected');
 
   return (
-    <WalletContext.Provider
-      value={{ walletApi, setWalletApi, walletStatus, setWalletStatus }}
-    >
+    <WalletContext.Provider value={{ walletApi, setWalletApi, walletStatus, setWalletStatus }}>
       {children}
     </WalletContext.Provider>
   );

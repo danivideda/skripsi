@@ -38,19 +38,13 @@ function QueueList({ list }: { list: any }) {
 
   return (
     <div>
-      <h1 className="font-semibold">
-        Number of queue: {list.queue_list.length}
-      </h1>
+      <h1 className="font-semibold">Number of queue: {list.queue_list.length}</h1>
       <table className="w-full border-2 border-black mt-2">
         <thead>
           <tr>
             <th className="border-y-2 border-x border-black p-1">User</th>
-            <th className="border-y-2 border-x border-black p-1">
-              Destination
-            </th>
-            <th className="border-y-2 border-x border-black p-1">
-              Amount
-            </th>
+            <th className="border-y-2 border-x border-black p-1">Destination</th>
+            <th className="border-y-2 border-x border-black p-1">Amount</th>
           </tr>
         </thead>
         <tbody className="font-normal">

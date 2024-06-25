@@ -48,7 +48,7 @@ export default function Wallet({
       setUserAddress(userAddress);
       setButtonState('');
       setStakeAddressHexCallback(userAddress);
-      walletContext.setWalletStatus!('in_queue')
+      walletContext.setWalletStatus!('in_queue');
 
       return;
     }
@@ -77,7 +77,7 @@ export default function Wallet({
     setUtxos(utxoListDecoded);
     setStakeAddressHexCallback(userAddress);
     // setIsWalletConnectedCallback(true);
-    walletContext.setWalletStatus!('available')
+    walletContext.setWalletStatus!('available');
   }
 
   async function handleClickDisconnectWallet() {
@@ -90,7 +90,7 @@ export default function Wallet({
     clearUtxoListCallback();
     setStakeAddressHexCallback('');
     // setIsWalletConnectedCallback(false);
-    walletContext.setWalletStatus!('disconnected')
+    walletContext.setWalletStatus!('disconnected');
   }
 
   // if (isWalletConnected) {
@@ -107,9 +107,7 @@ export default function Wallet({
           }
           onClick={handleClickDisconnectWallet}
         >
-          {buttonState === 'loading'
-            ? 'Disconnecting wallet...'
-            : 'Disconnect Wallet'}
+          {buttonState === 'loading' ? 'Disconnecting wallet...' : 'Disconnect Wallet'}
         </button>
         <div className="mx-auto mt-5 w-full bg-gray-100 rounded border border-primary p-2">
           <div>
@@ -131,10 +129,8 @@ export default function Wallet({
               return (
                 <li key={utxo_item.utxoString}>
                   <span className="font-semibold">UTXO</span>:{' '}
-                  {truncate(
-                    bufferToHexString(utxo_item.txOutputs.transactionInput[0]),
-                  )}
-                  #{utxo_item.txOutputs.transactionInput[1]},{' '}
+                  {truncate(bufferToHexString(utxo_item.txOutputs.transactionInput[0]))}#
+                  {utxo_item.txOutputs.transactionInput[1]},{' '}
                   <span className="font-semibold">amount</span>:{' '}
                   {utxo_item.txOutputs.transactionOutput[1]} lovelace{' '}
                   <input
