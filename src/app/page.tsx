@@ -15,7 +15,6 @@ export default function Root() {
           </ContainerBox>
           {/* item 2 */}
           <ContainerBox>
-            <h1 className="text-lg">Transaction Aggregation Queue</h1>
             <TransactionQueue />
           </ContainerBox>
         </div>
@@ -38,7 +37,7 @@ export default function Root() {
 
 function ContainerBox({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex flex-col items-center justify-start p-5 bg-white w-3/4 min-h-[500px] my-5 rounded-md drop-shadow-xl mx-auto">
+    <div className="w-1/2 flex flex-col items-center justify-start p-5 bg-white min-h-[500px] my-5 rounded-md drop-shadow-xl mx-auto">
       {children}
     </div>
   );
