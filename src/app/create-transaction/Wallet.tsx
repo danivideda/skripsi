@@ -1,15 +1,14 @@
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 import { NumericFormat } from 'react-number-format';
 import * as cbor from 'cbor';
 import { Utxo, UnspentTransactionOutput } from '../types';
 import { bufferToHexString, truncate } from '../helper';
+import { WalletContext } from '../wallet-provider';
 
 export default function Wallet({
   addUtxoCallback,
   deleteUtxoCallback,
   clearUtxoListCallback,
-  setIsWalletConnectedCallback,
-  isWalletConnected,
   setStakeAddressHexCallback,
 }: {
   addUtxoCallback: (utxo: Utxo) => void;
@@ -24,9 +23,13 @@ export default function Wallet({
   const [buttonState, setButtonState] = useState('');
   const [utxos, setUtxos] = useState([] as Utxo[]);
 
+  const walletContext = useContext(WalletContext);
+  console.log(walletContext.walletStatus);
+
   async function handleClickConnectWallet() {
     setButtonState('loading');
     const walletApi = await window.cardano.eternl.enable();
+    walletContext.setWalletApi!(walletApi);
 
     async function checkInQueue() {
       const url = `${process.env.backendUrl}/transactions/queue`;
@@ -45,7 +48,7 @@ export default function Wallet({
       setUserAddress(userAddress);
       setButtonState('');
       setStakeAddressHexCallback(userAddress);
-      setIsWalletConnectedCallback(true);
+      walletContext.setWalletStatus!('in_queue')
 
       return;
     }
@@ -73,7 +76,8 @@ export default function Wallet({
     setButtonState('');
     setUtxos(utxoListDecoded);
     setStakeAddressHexCallback(userAddress);
-    setIsWalletConnectedCallback(true);
+    // setIsWalletConnectedCallback(true);
+    walletContext.setWalletStatus!('available')
   }
 
   async function handleClickDisconnectWallet() {
@@ -85,10 +89,12 @@ export default function Wallet({
     setButtonState('');
     clearUtxoListCallback();
     setStakeAddressHexCallback('');
-    setIsWalletConnectedCallback(false);
+    // setIsWalletConnectedCallback(false);
+    walletContext.setWalletStatus!('disconnected')
   }
 
-  if (isWalletConnected) {
+  // if (isWalletConnected) {
+  if (walletContext.walletStatus !== 'disconnected') {
     return (
       <>
         <button
