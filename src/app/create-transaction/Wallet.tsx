@@ -14,8 +14,6 @@ export default function Wallet({
   addUtxoCallback: (utxo: Utxo) => void;
   deleteUtxoCallback: (utxo: Utxo) => void;
   clearUtxoListCallback: () => void;
-  setIsWalletConnectedCallback: (isConnected: boolean) => void;
-  isWalletConnected: boolean;
   setStakeAddressHexCallback: (stakeAddressHex: string) => void;
 }) {
   const [balance, setBalance] = useState(0.0);
@@ -29,7 +27,7 @@ export default function Wallet({
   async function handleClickConnectWallet() {
     setButtonState('loading');
     const walletApi = await window.cardano.eternl.enable();
-    walletContext.setWalletApi!(walletApi);
+    walletContext.setWalletApi(walletApi);
 
     async function checkInQueue() {
       const url = `${process.env.backendUrl}/transactions/queue`;
@@ -48,7 +46,7 @@ export default function Wallet({
       setUserAddress(userAddress);
       setButtonState('');
       setStakeAddressHexCallback(userAddress);
-      walletContext.setWalletStatus!('in_queue');
+      walletContext.setWalletStatus('in_queue');
 
       return;
     }
@@ -76,8 +74,7 @@ export default function Wallet({
     setButtonState('');
     setUtxos(utxoListDecoded);
     setStakeAddressHexCallback(userAddress);
-    // setIsWalletConnectedCallback(true);
-    walletContext.setWalletStatus!('available');
+    walletContext.setWalletStatus('available');
   }
 
   async function handleClickDisconnectWallet() {
@@ -89,8 +86,7 @@ export default function Wallet({
     setButtonState('');
     clearUtxoListCallback();
     setStakeAddressHexCallback('');
-    // setIsWalletConnectedCallback(false);
-    walletContext.setWalletStatus!('disconnected');
+    walletContext.setWalletStatus('disconnected');
   }
 
   // if (isWalletConnected) {
@@ -160,7 +156,7 @@ export default function Wallet({
         className={
           'mx-auto mt-5 w-full bg-green-300 rounded border border-primary p-2' +
           ' ' +
-          (buttonState === 'loading' ? 'text-gray-300' : '')
+          (buttonState === 'loading' ? 'text-white' : '')
         }
         onClick={handleClickConnectWallet}
       >

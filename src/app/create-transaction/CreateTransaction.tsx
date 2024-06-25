@@ -46,8 +46,6 @@ export default function CreateTransaction() {
         addUtxoCallback={addUtxo}
         deleteUtxoCallback={deleteUtxo}
         clearUtxoListCallback={clearUtxoList}
-        setIsWalletConnectedCallback={setIsWalletConnectedCallback}
-        isWalletConnected={isWalletConnected}
         setStakeAddressHexCallback={setStakeAddressHexCallback}
       />
     </>
