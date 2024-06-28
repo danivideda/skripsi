@@ -76,7 +76,7 @@ function QueueList({ list }: { list: any }) {
                         </span>
                       </div>
                     </td>
-                    <td className="p-1 px-3 text-left border border-black break-words">
+                    <td className="p-1 px-3 text-left border border-black break-words font-mono">
                       <NumericFormat
                         displayType="text"
                         thousandSeparator=","
