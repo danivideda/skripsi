@@ -21,15 +21,15 @@ export default function Form({
   const walletContext = useContext(WalletContext);
 
   useEffect(() => {
-    if (!isWalletConnected) {
+    if (walletContext.walletStatus !== 'available') {
       setAddress('');
       setAmount(0);
       setAmountInAdaForInputValue(0.0);
     }
-  }, [isWalletConnected]);
+  }, [walletContext.walletStatus]);
 
   const addrPlaceHolder =
-    'addr_test1qpgkdndedlklzkr8gkpaa8qulavjehrlee86k22jdrva9vf0d5dxpdatxft8ka436d8z4765fvacmdcxv7kjss08sg8qshp8gc';
+    'addr_test1qpgkd...';
 
   function onAmountChange(e: ChangeEvent<HTMLInputElement>) {
     const cleanString = e.target.value.replace(/,/g, '');
@@ -69,6 +69,7 @@ export default function Form({
         setSuccess(true);
         setAmountInAdaForInputValue(0.0);
         setAmount(0);
+        setAddress('');
         walletContext.setWalletStatus('in_queue');
       }
       console.log(await response.json());
@@ -102,6 +103,7 @@ export default function Form({
           <textarea
             disabled={walletContext.walletStatus !== 'available'}
             className="resize-none h-24 rounded-md shadow-inner border mx-auto w-full p-2"
+            value={address}
             placeholder={addrPlaceHolder}
             onChange={onAddressChange}
           ></textarea>
@@ -115,7 +117,6 @@ export default function Form({
                 ? ''
                 : amountInAdaForInputValue
             }
-            // value={amountInAda}
             thousandSeparator=","
             placeholder="0.000000"
             allowNegative={false}
@@ -124,13 +125,6 @@ export default function Form({
             disabled={walletContext.walletStatus !== 'available'}
             onChange={onAmountChange}
           />
-          {/* <input
-            type="number"
-            name="amount"
-            id="amount"
-            className="resize-none rounded-md shadow-inner border mx-auto w-full p-2"
-            onChange={onAmountChange}
-          /> */}
           Available to spend:{' '}
           <span className="font-bold">
             <NumericFormat
