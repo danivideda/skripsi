@@ -1,6 +1,7 @@
-import { ChangeEvent, FormEvent, useEffect, useState } from 'react';
+import { ChangeEvent, FormEvent, useContext, useEffect, useState } from 'react';
 import { NumericFormat } from 'react-number-format';
 import { Utxo } from '../types';
+import { WalletContext } from '../wallet-provider';
 
 export default function Form({
   utxoList,
@@ -16,6 +17,8 @@ export default function Form({
   const [amountInAdaForInputValue, setAmountInAdaForInputValue] = useState(0.0);
   const [errors, setErrors] = useState({} as { name: string; value: string });
   const [success, setSuccess] = useState(false);
+
+  const walletContext = useContext(WalletContext);
 
   useEffect(() => {
     if (!isWalletConnected) {
@@ -66,6 +69,7 @@ export default function Form({
         setSuccess(true);
         setAmountInAdaForInputValue(0.0);
         setAmount(0);
+        walletContext.setWalletStatus('in_queue');
       }
       console.log(await response.json());
     } catch (error) {
@@ -83,7 +87,7 @@ export default function Form({
 
   function isButtonDisabled() {
     return (
-      !isWalletConnected ||
+      walletContext.walletStatus !== 'available' ||
       !(address.length === 108) ||
       !(amount > 0) ||
       !(amount < lovelaceAmountFromUTXOInput() - 2_000_000)
@@ -96,9 +100,8 @@ export default function Form({
         <div className="mb-5">
           <h1 className="text-md mb-2 p-1 font-semibold">Destination Address</h1>
           <textarea
-            disabled={!isWalletConnected}
+            disabled={walletContext.walletStatus !== 'available'}
             className="resize-none h-24 rounded-md shadow-inner border mx-auto w-full p-2"
-            value={!isWalletConnected ? '' : address}
             placeholder={addrPlaceHolder}
             onChange={onAddressChange}
           ></textarea>
@@ -108,7 +111,9 @@ export default function Form({
           <NumericFormat
             className="resize-none rounded-md shadow-inner border mx-auto w-full p-2"
             value={
-              amountInAdaForInputValue === 0 || !isWalletConnected ? '' : amountInAdaForInputValue
+              amountInAdaForInputValue === 0 || walletContext.walletStatus !== 'available'
+                ? ''
+                : amountInAdaForInputValue
             }
             // value={amountInAda}
             thousandSeparator=","
@@ -116,7 +121,7 @@ export default function Form({
             allowNegative={false}
             fixedDecimalScale
             decimalScale={6}
-            disabled={!isWalletConnected}
+            disabled={walletContext.walletStatus !== 'available'}
             onChange={onAmountChange}
           />
           {/* <input
