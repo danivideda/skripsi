@@ -6,3 +6,10 @@ export class CheckQueueDTO {
   @Length(58)
   public stakeAddressHex: string;
 }
+
+export class GetStatusDTO {
+  @IsNotEmpty()
+  @IsString()
+  @Length(58)
+  public stakeAddressHex: string;
+}

@@ -5,3 +5,4 @@ export const BLOCKFROST_CLIENT = 'BLOCKFROST_CLIENT';
 export const DTransactionsRepoName = 'Transactions';
 export const DTransactionsQueueKey = DTransactionsRepoName + ':Queue';
 export const DBatchesRepoName = 'Batches';
+export const DUsersBatchesRepoName = 'Users:Batches';

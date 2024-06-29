@@ -1,7 +1,13 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
 import { RedisClientType } from 'redis';
-import type { Transaction } from '../../common';
-import { REDIS_CLIENT, DTransactionsQueueKey, DTransactionsRepoName, RedisKeyExistsException } from '../../common';
+import type { Transaction, WalletStatus } from '../../common';
+import {
+  DUsersBatchesRepoName,
+  REDIS_CLIENT,
+  DTransactionsQueueKey,
+  DTransactionsRepoName,
+  RedisKeyExistsException,
+} from '../../common';
 
 @Injectable()
 export class TransactionsRepository {
@@ -22,9 +28,39 @@ export class TransactionsRepository {
   }
 
   async checkIfTransactionAlreadyInQueue(stakeAddressHex: string) {
-    const DTransactionItemKey = DTransactionsRepoName.concat(':', stakeAddressHex);
+    const RedisTransactionKey = DTransactionsRepoName.concat(':', stakeAddressHex);
 
-    await this.checkIfKeyAlreadyExist(DTransactionItemKey);
+    await this.checkIfKeyAlreadyExist(RedisTransactionKey);
+  }
+
+  async getTransactionStatus(stakeAddressHex: string): Promise<WalletStatus> {
+    // in_batch
+    // signed
+    const RedisUsersBatchesKey = `${DUsersBatchesRepoName}:${stakeAddressHex}`;
+    const usersBatchesItem = await this.redisClient.GET(RedisUsersBatchesKey);
+    this.logger.log(usersBatchesItem, stakeAddressHex);
+    if (usersBatchesItem) {
+      const RedisBatchesKey: string = usersBatchesItem;
+      const batchesItem = await this.redisClient.GET(RedisBatchesKey);
+      if (!batchesItem) {
+        throw new InternalServerErrorException();
+      }
+
+      const alreadySignedList: Array<string> = JSON.parse(batchesItem).signedList;
+      if (alreadySignedList.includes(stakeAddressHex)) {
+        return 'signed';
+      }
+      return 'in_batch';
+    }
+
+    // available
+    // in_queue
+    const RedisTransactionKey = `${DTransactionsRepoName}:${stakeAddressHex}`;
+    const transactionItem = await this.redisClient.GET(RedisTransactionKey);
+    if (transactionItem) {
+      return 'in_queue';
+    }
+    return 'available';
   }
 
   async getTransactionListInQueue() {
@@ -41,9 +77,9 @@ export class TransactionsRepository {
     };
   }
 
-  private async checkIfKeyAlreadyExist(DTransactionsItemKey: string) {
-    if (await this.redisClient.GET(DTransactionsItemKey)) {
-      throw new RedisKeyExistsException(`Key '${DTransactionsItemKey}' already exists.`);
+  private async checkIfKeyAlreadyExist(RedisTransactionKey: string) {
+    if (await this.redisClient.GET(RedisTransactionKey)) {
+      throw new RedisKeyExistsException(`Key '${RedisTransactionKey}' already exists.`);
     }
   }
 

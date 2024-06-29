@@ -12,3 +12,5 @@ export type Batch = {
   witnessSignatureList: string[];
   signedList: StakeAddress[];
 };
+
+export type WalletStatus = 'available' | 'in_queue' | 'in_batch' | 'signed';

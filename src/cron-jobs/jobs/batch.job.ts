@@ -4,6 +4,7 @@ import { RedisClientType } from 'redis';
 import { BlockFrostAPI } from '@blockfrost/blockfrost-js';
 import type { Transaction } from '../../common';
 import {
+  DUsersBatchesRepoName,
   REDIS_CLIENT,
   BLOCKFROST_CLIENT,
   DTransactionsQueueKey,
@@ -258,8 +259,8 @@ export class BatchJob {
       .expire(RedisBatchesKey, timeToLiveSecond);
 
     for (const transactionKey of this.transactionKeyList) {
-      const RedisUsersKey = 'Users:Batches:' + transactionKey.slice('Transactions:'.length);
-      redisQuery.set(RedisUsersKey, RedisBatchesKey).expire(RedisUsersKey, timeToLiveSecond);
+      const RedisUsersBatchesKey = `${DUsersBatchesRepoName}:${transactionKey.slice('Transactions:'.length)}`;
+      redisQuery.set(RedisUsersBatchesKey, RedisBatchesKey).expire(RedisUsersBatchesKey, timeToLiveSecond);
     }
 
     const saveToRedis = await redisQuery.exec();
