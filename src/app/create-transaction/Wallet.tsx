@@ -1,7 +1,7 @@
 import { useContext, useState } from 'react';
 import { NumericFormat } from 'react-number-format';
 import * as cbor from 'cbor';
-import { Utxo, UnspentTransactionOutput } from '../types';
+import { Utxo, UnspentTransactionOutput, WalletStatus } from '../types';
 import { bufferToHexString, truncate } from '../helper';
 import { WalletContext } from '../wallet-provider';
 
@@ -27,17 +27,25 @@ export default function Wallet({
     setButtonState('loading');
 
     const walletApi = await window.cardano.eternl.enable();
-    walletContext.setWalletApi(walletApi);
-
     const _userAddress = (await walletApi.getRewardAddresses())[0];
-    setUserAddress(_userAddress);
-
     const balanceDecoded = await cbor.decode(await walletApi.getBalance());
     const _balance = balanceDecoded === typeof Array ? balanceDecoded[0] : balanceDecoded;
+
+    walletContext.setWalletApi(walletApi);
+    setUserAddress(_userAddress);
     setBalance(_balance);
 
-    async function checkInQueue() {
-      const url = `${process.env.backendUrl}/transactions/queue/check`;
+    const walletStatus = await getWalletStatus();
+    if (walletStatus === 'in_queue' || walletStatus === 'in_batch' || walletStatus === 'signed') {
+      initNotAvailable();
+    }
+
+    if (walletStatus === 'available') {
+      await initAvailable();
+    }
+
+    async function getWalletStatus(): Promise<WalletStatus> {
+      const url = `${process.env.backendUrl}/transactions/status`;
       const response = await fetch(url, {
         method: 'POST',
         mode: 'cors',
@@ -49,39 +57,39 @@ export default function Wallet({
         }),
       });
       const body = await response.json();
-      return body.message === 'Not in queue' ? 'available' : 'in_queue';
+      return body.message;
     }
 
-    if ((await checkInQueue()) === 'in_queue') {
+    function initNotAvailable() {
       setButtonState('');
       setStakeAddressHexCallback(_userAddress);
-      walletContext.setWalletStatus('in_queue');
-
-      return;
+      walletContext.setWalletStatus(walletStatus);
     }
 
-    const balance = await cbor.decode(await walletApi.getBalance());
-    const utxoListString = (await walletApi.getUtxos()) ?? [];
-    const utxoListDecoded = await Promise.all(
-      utxoListString.map(async (utxo_string) => {
-        const txOutputsArray: any[] = await cbor.decode(utxo_string);
-        const txOutputs: UnspentTransactionOutput = {
-          transactionInput: txOutputsArray[0],
-          transactionOutput: txOutputsArray[1],
-        };
+    async function initAvailable() {
+      const utxoListString = (await walletApi.getUtxos()) ?? [];
+      const utxoListDecoded = await decodeUtxoList(utxoListString);
+      setButtonState('');
+      setUtxos(utxoListDecoded);
+      setStakeAddressHexCallback(_userAddress);
+      walletContext.setWalletStatus(walletStatus);
+    }
 
-        return {
-          utxoString: utxo_string,
-          txOutputs,
-        } as Utxo;
-      }),
-    );
-
-    setBalance(balance === typeof Array ? balance[0] : balance);
-    setButtonState('');
-    setUtxos(utxoListDecoded);
-    setStakeAddressHexCallback(_userAddress);
-    walletContext.setWalletStatus('available');
+    async function decodeUtxoList(utxoListString: string[]) {
+      return await Promise.all(
+        utxoListString.map(async (utxo_string) => {
+          const txOutputsArray: any[] = await cbor.decode(utxo_string);
+          const txOutputs: UnspentTransactionOutput = {
+            transactionInput: txOutputsArray[0],
+            transactionOutput: txOutputsArray[1],
+          };
+          return {
+            utxoString: utxo_string,
+            txOutputs,
+          } as Utxo;
+        }),
+      );
+    }
   }
 
   async function handleClickDisconnectWallet() {
@@ -96,7 +104,6 @@ export default function Wallet({
     walletContext.setWalletStatus('disconnected');
   }
 
-  // if (isWalletConnected) {
   if (walletContext.walletStatus !== 'disconnected') {
     return (
       <>
@@ -134,11 +141,15 @@ export default function Wallet({
               {walletContext.walletStatus === 'available' && 'Available'}
             </span>
             <span className="text-orange-500 font-bold">
-            {walletContext.walletStatus === 'in_queue' && 'In queue process'}
+              {walletContext.walletStatus === 'in_queue' && 'In queue process'}
             </span>
-            {walletContext.walletStatus === 'in_batch' && 'In aggregation process'}
-            {walletContext.walletStatus === 'signed' &&
-              'Waiting for others to sign the aggregated transaction'}
+            <span className="text-purple-500 font-bold">
+              {walletContext.walletStatus === 'in_batch' && 'In aggregation process'}
+            </span>
+            <span className="text-blue-500 font-bold">
+              {walletContext.walletStatus === 'signed' &&
+                'Waiting for others to sign the aggregated transaction'}
+            </span>
           </div>
 
           {walletContext.walletStatus === 'available' && (
