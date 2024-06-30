@@ -27,12 +27,6 @@ export class TransactionsRepository {
     };
   }
 
-  async checkIfTransactionAlreadyInQueue(stakeAddressHex: string) {
-    const RedisTransactionKey = DTransactionsRepoName.concat(':', stakeAddressHex);
-
-    await this.checkIfKeyAlreadyExist(RedisTransactionKey);
-  }
-
   async getTransactionStatus(stakeAddressHex: string): Promise<WalletStatus> {
     // in_batch
     // signed
@@ -53,13 +47,14 @@ export class TransactionsRepository {
       return 'in_batch';
     }
 
-    // available
     // in_queue
     const RedisTransactionKey = `${DTransactionsRepoName}:${stakeAddressHex}`;
     const transactionItem = await this.redisClient.GET(RedisTransactionKey);
     if (transactionItem) {
       return 'in_queue';
     }
+
+    // available
     return 'available';
   }
 

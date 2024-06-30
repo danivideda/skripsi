@@ -2,7 +2,7 @@ import { HttpStatus, Injectable, Logger, InternalServerErrorException, Forbidden
 import type { Transaction } from '../../common';
 import { RedisKeyExistsException } from '../../common';
 import { UtilsService } from '../../utils/utils.service';
-import type { CheckQueueDTO, CreateTransactionDto, GetStatusDTO } from './dto';
+import type { CreateTransactionDto, GetStatusDTO } from './dto';
 import { TransactionsRepository } from './transactions.repository';
 
 @Injectable()
@@ -37,26 +37,7 @@ export class TransactionsService {
     });
   }
 
-  async checkQueue(body: CheckQueueDTO) {
-    try {
-      await this.transactionsRepository.checkIfTransactionAlreadyInQueue(body.stakeAddressHex);
-
-      return this.utilsService.createResponse(HttpStatus.OK, 'Not in queue');
-    } catch (error) {
-      this.logger.error(error);
-      if (error instanceof RedisKeyExistsException) {
-        return this.utilsService.createResponse(HttpStatus.OK, 'Already in queue');
-      } else {
-        throw new InternalServerErrorException();
-      }
-    }
-  }
-
   async getStatus(body: GetStatusDTO) {
-    // available
-    // in_queue
-    // in_batch
-    // signed
     const status = await this.transactionsRepository.getTransactionStatus(body.stakeAddressHex);
     return this.utilsService.createResponse(HttpStatus.OK, status);
   }
