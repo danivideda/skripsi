@@ -2,17 +2,17 @@ import { ConfigService } from '@nestjs/config';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { RedisClientType } from 'redis';
 import { BlockFrostAPI } from '@blockfrost/blockfrost-js';
-import type { Transaction } from '../../common';
+import { UtilsService } from '../../utils/utils.service';
+import type { BufferLike } from 'cbor/types/lib/decoder';
 import {
-  DUsersBatchesRepoName,
   REDIS_CLIENT,
   BLOCKFROST_CLIENT,
   DTransactionsQueueKey,
   DTransactionsRepoName,
   DBatchesRepoName,
-} from '../../common';
-import { UtilsService } from '../../utils/utils.service';
-import type { BufferLike } from 'cbor/types/lib/decoder';
+  DUsersBatchesRepoName,
+} from '../../common/constants';
+import type { Transaction } from '../../common/types';
 
 type NetworkParams = {
   minFee: number;

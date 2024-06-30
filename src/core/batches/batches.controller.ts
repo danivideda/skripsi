@@ -1,6 +1,6 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post } from '@nestjs/common';
 import { BatchesService } from './batches.service';
-import { SignBatchesDto } from './dto';
+import { GetBatchDto, SignBatchesDto } from './dto';
 
 @Controller('batches')
 export class BatchesController {
@@ -9,5 +9,10 @@ export class BatchesController {
   @Post('sign')
   async sign(@Body() signDto: SignBatchesDto) {
     return await this.batchesService.signBatch(signDto);
+  }
+
+  @Post()
+  async getBatch(@Body() getBatchDto: GetBatchDto) {
+    return await this.batchesService.getBatch(getBatchDto);
   }
 }

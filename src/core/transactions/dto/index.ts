@@ -1,2 +1,2 @@
 export * from './send-transactions.dto';
-export * from './check-queue.dto';
+export * from './get-status.dto';

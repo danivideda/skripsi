@@ -1,13 +1,13 @@
 import { Inject, Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
 import { RedisClientType } from 'redis';
-import type { Transaction, WalletStatus } from '../../common';
 import {
-  DUsersBatchesRepoName,
   REDIS_CLIENT,
-  DTransactionsQueueKey,
   DTransactionsRepoName,
-  RedisKeyExistsException,
-} from '../../common';
+  DUsersBatchesRepoName,
+  DTransactionsQueueKey,
+} from '../../common/constants';
+import { RedisKeyExistsException } from '../../common/exceptions';
+import type { Transaction, WalletStatus } from '../../common/types';
 
 @Injectable()
 export class TransactionsRepository {

@@ -10,10 +10,10 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { RedisClientType } from 'redis';
-import type { Batch } from '../../common';
-import { REDIS_CLIENT, BLOCKFROST_CLIENT } from '../../common';
+import { REDIS_CLIENT, BLOCKFROST_CLIENT, DBatchesRepoName } from '../../common/constants';
+import type { Batch } from '../../common/types';
 import { UtilsService } from '../../utils/utils.service';
-import type { SignBatchesDto } from './dto';
+import type { GetBatchDto, SignBatchesDto } from './dto';
 
 @Injectable()
 export class BatchesService {
@@ -107,5 +107,11 @@ export class BatchesService {
       if (error instanceof UnauthorizedException) throw new ForbiddenException(error.message);
       throw new InternalServerErrorException();
     }
+  }
+
+  async getBatch(body: GetBatchDto) {
+    const { stakeAddressHex } = body;
+    const RedisUsersBatchesItemKey = `${DBatchesRepoName}:${stakeAddressHex}`;
+    return 'hello';
   }
 }
