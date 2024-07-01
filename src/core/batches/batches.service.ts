@@ -10,7 +10,7 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { RedisClientType } from 'redis';
-import { REDIS_CLIENT, BLOCKFROST_CLIENT, DBatchesRepoName } from '../../common/constants';
+import { REDIS_CLIENT, BLOCKFROST_CLIENT, DUsersBatchesRepoName } from '../../common/constants';
 import type { Batch } from '../../common/types';
 import { UtilsService } from '../../utils/utils.service';
 import type { GetBatchDto, SignBatchesDto } from './dto';
@@ -109,9 +109,44 @@ export class BatchesService {
     }
   }
 
-  async getBatch(body: GetBatchDto) {
+  async getBatch(body: GetBatchDto): Promise<{
+    in_batch: boolean;
+    signed: boolean;
+    data: Batch | null;
+  }> {
     const { stakeAddressHex } = body;
-    const RedisUsersBatchesItemKey = `${DBatchesRepoName}:${stakeAddressHex}`;
-    return 'hello';
+    const RedisUsersBatchesItemKey = `${DUsersBatchesRepoName}:${stakeAddressHex}`;
+    const RedisBatchesItemKey = await this.redisClient.GET(RedisUsersBatchesItemKey);
+    if (!RedisBatchesItemKey) {
+      throw new InternalServerErrorException('batches key not found');
+    }
+    const batchItemJsonString = await this.redisClient.GET(RedisBatchesItemKey);
+    if (!batchItemJsonString) {
+      throw new InternalServerErrorException('batches item not found');
+    }
+
+    const batchItem: Batch = JSON.parse(batchItemJsonString);
+
+    // Check if address exist already in batch
+    if (batchItem.stakeAddressList.includes(stakeAddressHex)) {
+      if (batchItem.signedList.includes(stakeAddressHex)) {
+        return {
+          in_batch: true,
+          signed: true,
+          data: batchItem,
+        };
+      }
+      return {
+        in_batch: true,
+        signed: false,
+        data: batchItem,
+      };
+    }
+
+    return {
+      in_batch: false,
+      signed: false,
+      data: null,
+    };
   }
 }

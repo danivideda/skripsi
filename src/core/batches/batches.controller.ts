@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, HttpCode, Post } from '@nestjs/common';
 import { BatchesService } from './batches.service';
 import { GetBatchDto, SignBatchesDto } from './dto';
 
@@ -12,6 +12,7 @@ export class BatchesController {
   }
 
   @Post()
+  @HttpCode(200)
   async getBatch(@Body() getBatchDto: GetBatchDto) {
     return await this.batchesService.getBatch(getBatchDto);
   }
