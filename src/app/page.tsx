@@ -1,6 +1,6 @@
-import CreateTransaction from './create-transaction/CreateTransaction';
+import CreateTransaction from './1-create-transaction/CreateTransaction';
+import TransactionQueue from './2-transaction-aggregation-queue/TransactionQueue';
 import HeadingSkripsi from './landing-page/HeadingSkripsi';
-import TransactionQueue from './transaction-aggregation-queue/TransactionQueue';
 
 export default function Root() {
   return (
@@ -23,11 +23,11 @@ export default function Root() {
         <div className="flex flex-row justify-between w-full gap-x-5">
           {/* item 1 */}
           <ContainerBox>
-            <h1 className="text-lg">Sign Aggregated Transaction</h1>
+            <h1 className="text-lg">Aggregated Transaction Detail</h1>
           </ContainerBox>
           {/* item 2 */}
           <ContainerBox>
-            <h1 className="text-lg">Submit Aggregated Transaction</h1>
+            <h1 className="text-lg">Sign and Submit Aggregated Transaction</h1>
           </ContainerBox>
         </div>
       </div>
