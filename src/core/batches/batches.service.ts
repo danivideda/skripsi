@@ -10,7 +10,7 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { RedisClientType } from 'redis';
-import { REDIS_CLIENT, BLOCKFROST_CLIENT, DUsersBatchesRepoName } from '../../common/constants';
+import { REDIS_CLIENT, BLOCKFROST_CLIENT, DUsersBatchesRepoName, DBatchesRepoName } from '../../common/constants';
 import type { Batch } from '../../common/types';
 import { UtilsService } from '../../utils/utils.service';
 import type { GetBatchDto, SignBatchesDto } from './dto';
@@ -99,7 +99,7 @@ export class BatchesService {
       );
 
       return this.utilsService.createResponse(HttpStatus.CREATED, 'Successfully signed all participants.', {
-        txId: RedisItemBatchKey.slice('Batches:'.length),
+        txId: RedisItemBatchKey.slice(`${DBatchesRepoName}:`.length),
       });
     } catch (error) {
       console.log(error);
@@ -112,7 +112,10 @@ export class BatchesService {
   async getBatch(body: GetBatchDto): Promise<{
     in_batch: boolean;
     signed: boolean;
-    data: Batch | null;
+    data: {
+      aggregatedTxId: string;
+      aggregatedTxData: Batch;
+    } | null;
   }> {
     const { stakeAddressHex } = body;
     const RedisUsersBatchesItemKey = `${DUsersBatchesRepoName}:${stakeAddressHex}`;
@@ -122,24 +125,30 @@ export class BatchesService {
     }
     const batchItemJsonString = await this.redisClient.GET(RedisBatchesItemKey);
     if (!batchItemJsonString) {
-      throw new InternalServerErrorException('batches item not found');
+      throw new InternalServerErrorException('batches item is missing');
     }
 
     const batchItem: Batch = JSON.parse(batchItemJsonString);
 
-    // Check if address exist already in batch
+    // Check if address belongs to this batch
     if (batchItem.stakeAddressList.includes(stakeAddressHex)) {
       if (batchItem.signedList.includes(stakeAddressHex)) {
         return {
           in_batch: true,
           signed: true,
-          data: batchItem,
+          data: {
+            aggregatedTxId: RedisBatchesItemKey.slice(`${DBatchesRepoName}:`.length),
+            aggregatedTxData: batchItem,
+          },
         };
       }
       return {
         in_batch: true,
         signed: false,
-        data: batchItem,
+        data: {
+          aggregatedTxId: RedisBatchesItemKey.slice(`${DBatchesRepoName}:`.length),
+          aggregatedTxData: batchItem,
+        },
       };
     }
 
