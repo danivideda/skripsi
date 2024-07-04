@@ -64,6 +64,7 @@ export default function Wallet({
       setButtonState('');
       setStakeAddressHexCallback(_userAddress);
       walletContext.setWalletStatus(walletStatus);
+      walletContext.setWalletAddress(_userAddress);
     }
 
     async function initAvailable() {
@@ -73,6 +74,7 @@ export default function Wallet({
       setUtxos(utxoListDecoded);
       setStakeAddressHexCallback(_userAddress);
       walletContext.setWalletStatus(walletStatus);
+      walletContext.setWalletAddress(_userAddress);
     }
 
     async function decodeUtxoList(utxoListString: string[]) {
