@@ -4,6 +4,7 @@ import { useContext, useEffect, useState } from 'react';
 import { truncate } from '../helper';
 import { NumericFormat } from 'react-number-format';
 import { WalletContext } from '../wallet-provider';
+import { WalletStatus } from '../types';
 
 export default function TransactionQueue() {
   const [queueList, setQueueList] = useState<any>({});
@@ -23,21 +24,45 @@ export default function TransactionQueue() {
     return () => {
       clearInterval(intervalFetch);
     };
-  }, [walletContext.walletStatus]);
 
-  async function fetchQueue() {
-    setIsFetching(true);
-    const url = `${process.env.backendUrl}/transactions/queue`;
-    const response = await fetch(url, {
-      method: 'GET',
-      mode: 'cors',
-    });
-    const body = await response.json();
-    setQueueList(body);
-    setTimeout(() => {
-      setIsFetching(false);
-    }, 500);
-  }
+    async function fetchQueue() {
+      setIsFetching(true);
+
+      if (walletContext.walletStatus !== 'disconnected') {
+        const walletStatus = await getWalletStatus();
+        if (walletStatus === 'in_batch' || walletStatus === 'signed') {
+          walletContext.setWalletStatus(walletStatus);
+          console.log('fetch status', walletStatus);
+        }
+      }
+      const url = `${process.env.backendUrl}/transactions/queue`;
+      const response = await fetch(url, {
+        method: 'GET',
+        mode: 'cors',
+      });
+      const body = await response.json();
+      setQueueList(body);
+      setTimeout(() => {
+        setIsFetching(false);
+      }, 500);
+    }
+
+    async function getWalletStatus(): Promise<WalletStatus> {
+      const url = `${process.env.backendUrl}/transactions/status`;
+      const response = await fetch(url, {
+        method: 'POST',
+        mode: 'cors',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          stakeAddressHex: walletContext.walletAddress,
+        }),
+      });
+      const body = await response.json();
+      return body.message;
+    }
+  }, [walletContext]);
 
   return (
     <div className="w-full">
