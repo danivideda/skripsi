@@ -1,6 +1,6 @@
 import CreateTransaction from './1-create-transaction/CreateTransaction';
 import TransactionQueue from './2-transaction-aggregation-queue/TransactionQueue';
-import AggregatedDetail from './3-aggregated-transaction-detail/AggregatedDetail';
+import AggregatedTransaction from './3-aggregated-transaction-detail/AggregatedTransaction';
 import HeadingSkripsi from './landing-page/HeadingSkripsi';
 
 export default function Root() {
@@ -25,7 +25,7 @@ export default function Root() {
           {/* item 1 */}
           <ContainerBox>
             <h1 className="text-lg">Aggregated Transaction Detail</h1>
-            <AggregatedDetail />
+            <AggregatedTransaction />
           </ContainerBox>
           {/* item 2 */}
           <ContainerBox>

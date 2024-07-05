@@ -1,16 +1,7 @@
 'use client';
 
 import { useState, ReactNode, createContext } from 'react';
-import { WalletInstance, WalletStatus } from './types';
-
-type WalletContextType = {
-  walletApi: WalletInstance | null;
-  setWalletApi: (i: WalletInstance) => void;
-  walletStatus: WalletStatus;
-  setWalletStatus: (i: WalletStatus) => void;
-  walletAddress: string | null;
-  setWalletAddress: (i: string) => void;
-};
+import { WalletContextType, WalletInstance, WalletStatus } from './types';
 
 export const WalletContext = createContext<WalletContextType>({
   walletApi: null,
