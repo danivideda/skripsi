@@ -13,4 +13,4 @@ export type Batch = {
   signedList: StakeAddress[];
 };
 
-export type WalletStatus = 'available' | 'in_queue' | 'in_batch' | 'signed';
+export type WalletStatus = 'disconnected' | 'available' | 'in_queue' | 'in_batch' | 'signed';
