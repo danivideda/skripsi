@@ -14,6 +14,10 @@ type AggregatedTransactionDetail = {
       transactionFullCborHex: string;
       witnessSignatureList: Array<string>;
       signedList: Array<string>;
+      feeTotal: number;
+      feePerParticipant: number;
+      totalInputUtxoCount: number;
+      txByteSize: number;
     };
   };
 };
@@ -52,33 +56,53 @@ export default function AggregatedTransaction() {
     if (!aggregatedTransactionDetail) {
       return 'loading...';
     }
-    return aggregatedTransactionDetail.data.aggregatedTxId;
+    return (
+      <>
+        <AggregatedTransactionDetail aggregatedTransactionDetail={aggregatedTransactionDetail} />
+      </>
+    );
   }
 
   return 'No aggregated transaction';
-
-  // return (
-  //   <AggregatedTransactionDetail
-  //     walletContext={walletContext}
-  //     aggregatedTransactionDetail={aggregatedTransactionDetail}
-  //   />
-  // );
 }
 
 function AggregatedTransactionDetail({
-  walletContext,
   aggregatedTransactionDetail,
 }: {
-  walletContext: WalletContextType;
-  aggregatedTransactionDetail: AggregatedTransactionDetail | null;
+  aggregatedTransactionDetail: AggregatedTransactionDetail;
 }) {
   return (
-    <div>
-      {walletContext.walletStatus === 'disconnected'
-        ? 'Please connect wallet first'
-        : !aggregatedTransactionDetail
-        ? 'loading'
-        : aggregatedTransactionDetail.data.aggregatedTxId}
+    <div className="flex flex-col border border-gray-500 rounded-md px-3">
+      <Item label="TxId" content={aggregatedTransactionDetail.data.aggregatedTxId} />
+      <Item
+        label="Number of participants"
+        content={aggregatedTransactionDetail.data.aggregatedTxData.stakeAddressList.length}
+      />
+      <Item
+        label="Total input UTXOs"
+        content={aggregatedTransactionDetail.data.aggregatedTxData.totalInputUtxoCount}
+      />
+      <Item
+        label="Transaction size (bytes)"
+        content={aggregatedTransactionDetail.data.aggregatedTxData.txByteSize}
+      />
+      <Item
+        label="Total transaction fee (ADA)"
+        content={aggregatedTransactionDetail.data.aggregatedTxData.feeTotal / 1_000_000}
+      />
+      <Item
+        label="Transaction fee per participant (ADA)"
+        content={aggregatedTransactionDetail.data.aggregatedTxData.feePerParticipant / 1_000_000}
+      />
+    </div>
+  );
+}
+
+function Item({ label, content }: { label: string; content: string | number }) {
+  return (
+    <div className="border-b border-b-gray-200 py-2">
+      <span className="text-sm italic mb-2 text-gray-500">{label}</span>
+      <p className="pl-1 text-md break-all font-mono">{content}</p>
     </div>
   );
 }

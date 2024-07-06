@@ -24,7 +24,7 @@ export default function Root() {
         <div className="flex flex-row justify-between w-full gap-x-5">
           {/* item 1 */}
           <ContainerBox>
-            <h1 className="text-lg">Aggregated Transaction Detail</h1>
+            <h1 className="text-lg mb-5">Aggregated Transaction Detail</h1>
             <AggregatedTransaction />
           </ContainerBox>
           {/* item 2 */}
