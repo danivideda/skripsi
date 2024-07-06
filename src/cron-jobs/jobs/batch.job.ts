@@ -34,6 +34,10 @@ export class BatchJob {
   private transactionObjList: Transaction[];
   private transactionFullCborBuffer: Buffer;
   private txId: string;
+  private feeTotal: number;
+  private feePerParticipant: number;
+  private totalInputUtxoCount: number;
+  private txByteSize: number;
 
   constructor(
     private readonly configService: ConfigService,
@@ -191,6 +195,8 @@ export class BatchJob {
 
     transactionBody.set(0, inputs).set(1, outputs).set(2, feeTotal).set(3, slotTTL);
 
+    this.totalInputUtxoCount = inputs.length;
+
     return {
       transactionBody,
       witnessSetCount,
@@ -221,12 +227,17 @@ export class BatchJob {
   ): Promise<{ feeTotal: number; feePerParticipant: number }> {
     const { minFee, feePerByte } = this.networkParams;
     // Calculate fees after including the witness set dummy
-    const rawFeeTotal: number = minFee + feePerByte * transactionFullCborHexBuffer.byteLength;
+    const txByteSize = transactionFullCborHexBuffer.byteLength;
+    const rawFeeTotal: number = minFee + feePerByte * txByteSize;
     const feeTotal: number =
       rawFeeTotal % this.transactionKeyList.length == 0
         ? rawFeeTotal
         : (Math.trunc(rawFeeTotal / this.transactionKeyList.length) + 1) * this.transactionKeyList.length;
     const feePerParticipant: number = Math.trunc(feeTotal / this.transactionKeyList.length);
+
+    this.feeTotal = feeTotal;
+    this.feePerParticipant = feePerParticipant;
+    this.txByteSize = txByteSize;
 
     return { feeTotal, feePerParticipant };
   }
@@ -250,6 +261,10 @@ export class BatchJob {
       transactionFullCborHex: this.transactionFullCborBuffer.toString('hex'),
       witnessSignatureList,
       signedList,
+      feeTotal: this.feeTotal,
+      feePerParticipant: this.feePerParticipant,
+      totalInputUtxoCount: this.totalInputUtxoCount,
+      txByteSize: this.txByteSize,
     };
 
     const RedisBatchesKey = `${DBatchesRepoName}:${this.txId}`;
