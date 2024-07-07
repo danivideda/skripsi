@@ -12,10 +12,14 @@ export default function Root() {
         <div className="flex flex-row justify-between w-full gap-x-5">
           {/* item 1 */}
           <ContainerBox>
+            <NumberBox>1</NumberBox>
+            <Title>Create New Transaction</Title>
             <CreateTransaction />
           </ContainerBox>
           {/* item 2 */}
           <ContainerBox>
+            <NumberBox>2</NumberBox>
+            <Title>Transaction Aggregation Queue</Title>
             <TransactionQueue />
           </ContainerBox>
         </div>
@@ -24,12 +28,14 @@ export default function Root() {
         <div className="flex flex-row justify-between w-full gap-x-5">
           {/* item 1 */}
           <ContainerBox>
-            <h1 className="text-lg mb-5">Aggregated Transaction Detail</h1>
+            <NumberBox>3</NumberBox>
+            <Title>Aggregated Transaction Detail</Title>
             <AggregatedTransaction />
           </ContainerBox>
           {/* item 2 */}
           <ContainerBox>
-            <h1 className="text-lg">Sign and Submit Aggregated Transaction</h1>
+            <NumberBox>4</NumberBox>
+            <Title>Sign and Submit Aggregated Transaction</Title>
           </ContainerBox>
         </div>
       </div>
@@ -39,8 +45,20 @@ export default function Root() {
 
 function ContainerBox({ children }: { children: React.ReactNode }) {
   return (
-    <div className="w-1/2 flex flex-col items-center justify-start p-5 bg-white min-h-[500px] my-5 rounded-md drop-shadow-xl mx-auto">
+    <div className="w-1/2 min-h-[500px] flex flex-col items-center justify-start p-5 bg-white my-5 rounded-md drop-shadow-xl mx-auto">
       {children}
     </div>
   );
+}
+
+function NumberBox({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="mb-3 text-lg font-bold w-6 leading-6 text-center border-2 border-purple-300 text-purple-600 rounded-full">
+      {children}
+    </span>
+  );
+}
+
+function Title({ children }: { children: React.ReactNode }) {
+  return <h1 className="font-bold text-lg w-full text-center border-b-2 pb-3 mb-3">{children}</h1>;
 }

@@ -3,6 +3,7 @@
 import { useContext, useEffect, useState } from 'react';
 import { WalletContext } from '../wallet-provider';
 import { WalletContextType } from '../types';
+import { truncate } from '../helper';
 
 type AggregatedTransactionDetail = {
   in_batch: boolean;
@@ -81,6 +82,11 @@ function AggregatedTransactionDetail({
       <Item
         label="Total input UTXOs"
         content={aggregatedTransactionDetail.data.aggregatedTxData.totalInputUtxoCount}
+      />
+      <Item
+        label="Concise Binary Object Notation (CBOR)"
+        // content={truncate(aggregatedTransactionDetail.data.aggregatedTxData.transactionFullCborHex, undefined, 30)}
+        content={aggregatedTransactionDetail.data.aggregatedTxData.transactionFullCborHex}
       />
       <Item
         label="Transaction size (bytes)"

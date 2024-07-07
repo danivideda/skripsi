@@ -81,7 +81,6 @@ function QueueList({ list, isFetching }: { list: any; isFetching: boolean }) {
 
   return (
     <>
-      <h1 className="text-lg w-full text-center">Transaction Aggregation Queue</h1>
       <div>
         <div className="flex justify-between">
           <h1 className="font-semibold">Number of queue: {list.queue_list.length}</h1>

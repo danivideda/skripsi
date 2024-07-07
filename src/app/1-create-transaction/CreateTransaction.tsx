@@ -36,7 +36,6 @@ export default function CreateTransaction() {
 
   return (
     <>
-      <h1 className="text-xl w-full text-center">Create New Transaction</h1>
       <Form
         utxoList={utxoList}
         isWalletConnected={isWalletConnected}
