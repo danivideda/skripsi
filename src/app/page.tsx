@@ -53,7 +53,7 @@ function ContainerBox({ children }: { children: React.ReactNode }) {
 
 function NumberBox({ children }: { children: React.ReactNode }) {
   return (
-    <span className="mb-3 text-lg font-bold w-6 leading-6 text-center border-2 border-purple-300 text-purple-600 rounded-full">
+    <span className="mb-3 text-lg font-bold w-8 h-8 leading-6 text-center border-4 border-purple-300 text-purple-600 rounded-full">
       {children}
     </span>
   );
