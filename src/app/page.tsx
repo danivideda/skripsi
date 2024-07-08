@@ -1,7 +1,9 @@
 import CreateTransaction from './1-create-transaction/CreateTransaction';
 import TransactionQueue from './2-transaction-aggregation-queue/TransactionQueue';
 import AggregatedTransaction from './3-aggregated-transaction-detail/AggregatedTransaction';
+import SignAggregated from './4-sign-aggregated-transaction/SignAggregated';
 import HeadingSkripsi from './landing-page/HeadingSkripsi';
+import AggregatedTransactionProvider from './providers/aggregated-transaction-provider';
 
 export default function Root() {
   return (
@@ -27,16 +29,19 @@ export default function Root() {
         {/* second row */}
         <div className="flex flex-row justify-between w-full gap-x-5">
           {/* item 1 */}
-          <ContainerBox>
-            <NumberBox>3</NumberBox>
-            <Title>Aggregated Transaction Detail</Title>
-            <AggregatedTransaction />
-          </ContainerBox>
-          {/* item 2 */}
-          <ContainerBox>
-            <NumberBox>4</NumberBox>
-            <Title>Sign and Submit Aggregated Transaction</Title>
-          </ContainerBox>
+          <AggregatedTransactionProvider>
+            <ContainerBox>
+              <NumberBox>3</NumberBox>
+              <Title>Aggregated Transaction Detail</Title>
+              <AggregatedTransaction />
+            </ContainerBox>
+            {/* item 2 */}
+            <ContainerBox>
+              <NumberBox>4</NumberBox>
+              <Title>Sign and Submit Aggregated Transaction</Title>
+              <SignAggregated />
+            </ContainerBox>
+          </AggregatedTransactionProvider>
         </div>
       </div>
     </div>

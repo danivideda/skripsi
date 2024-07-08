@@ -3,7 +3,7 @@ import { NumericFormat } from 'react-number-format';
 import * as cbor from 'cbor';
 import { Utxo, UnspentTransactionOutput, WalletStatus } from '../types';
 import { bufferToHexString, truncate } from '../helper';
-import { WalletContext } from '../wallet-provider';
+import { WalletContext } from '../providers/wallet-provider';
 
 export default function Wallet({
   addUtxoCallback,

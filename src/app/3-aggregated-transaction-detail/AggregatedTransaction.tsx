@@ -1,9 +1,8 @@
 'use client';
 
 import { useContext, useEffect, useState } from 'react';
-import { WalletContext } from '../wallet-provider';
-import { WalletContextType } from '../types';
-import { truncate } from '../helper';
+import { WalletContext } from '../providers/wallet-provider';
+import { AggregatedTransactionContext } from '../providers/aggregated-transaction-provider';
 
 type AggregatedTransactionDetail = {
   in_batch: boolean;
@@ -24,11 +23,12 @@ type AggregatedTransactionDetail = {
 };
 export default function AggregatedTransaction() {
   const walletContext = useContext(WalletContext);
-  const [aggregatedTransactionDetail, setAggregatedTransactionDetail] =
-    useState<AggregatedTransactionDetail | null>(null);
-
+  const aggregatedTransactionContext = useContext(AggregatedTransactionContext);
   useEffect(() => {
-    if (walletContext.walletStatus === 'in_batch' && walletContext.walletAddress) {
+    if (
+      (walletContext.walletStatus === 'in_batch' || walletContext.walletStatus === 'signed') &&
+      walletContext.walletAddress
+    ) {
       fetchAggregatedTransactionDetail();
     }
 
@@ -45,21 +45,23 @@ export default function AggregatedTransaction() {
         }),
       });
       const body = await response.json();
-      setAggregatedTransactionDetail(body);
+      aggregatedTransactionContext.setAggregatedTransactionDetail(body);
     }
-  }, [walletContext.walletAddress, walletContext.walletStatus]);
+  }, [aggregatedTransactionContext, walletContext.walletAddress, walletContext.walletStatus]);
 
   if (walletContext.walletStatus === 'disconnected') {
     return 'Please connect your wallet first.';
   }
 
   if (walletContext.walletStatus === 'in_batch') {
-    if (!aggregatedTransactionDetail) {
+    if (!aggregatedTransactionContext.aggregatedTransactionDetail) {
       return 'loading...';
     }
     return (
       <>
-        <AggregatedTransactionDetail aggregatedTransactionDetail={aggregatedTransactionDetail} />
+        <AggregatedTransactionDetail
+          aggregatedTransactionDetail={aggregatedTransactionContext.aggregatedTransactionDetail}
+        />
       </>
     );
   }

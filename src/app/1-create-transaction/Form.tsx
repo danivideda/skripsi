@@ -1,7 +1,7 @@
 import { ChangeEvent, FormEvent, useContext, useEffect, useState } from 'react';
 import { NumericFormat } from 'react-number-format';
 import { Utxo } from '../types';
-import { WalletContext } from '../wallet-provider';
+import { WalletContext } from '../providers/wallet-provider';
 
 export default function Form({
   utxoList,

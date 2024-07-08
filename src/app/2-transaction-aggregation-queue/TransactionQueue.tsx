@@ -3,7 +3,7 @@
 import { useContext, useEffect, useState } from 'react';
 import { truncate } from '../helper';
 import { NumericFormat } from 'react-number-format';
-import { WalletContext } from '../wallet-provider';
+import { WalletContext } from '../providers/wallet-provider';
 import { WalletStatus } from '../types';
 
 export default function TransactionQueue() {
