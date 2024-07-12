@@ -58,11 +58,9 @@ export default function AggregatedTransaction() {
       return 'loading...';
     }
     return (
-      <>
-        <AggregatedTransactionDetail
-          aggregatedTransactionDetail={aggregatedTransactionContext.aggregatedTransactionDetail}
-        />
-      </>
+      <AggregatedTransactionDetail
+        aggregatedTransactionDetail={aggregatedTransactionContext.aggregatedTransactionDetail}
+      />
     );
   }
 
@@ -86,11 +84,6 @@ function AggregatedTransactionDetail({
         content={aggregatedTransactionDetail.data.aggregatedTxData.totalInputUtxoCount}
       />
       <Item
-        label="Concise Binary Object Notation (CBOR)"
-        // content={truncate(aggregatedTransactionDetail.data.aggregatedTxData.transactionFullCborHex, undefined, 30)}
-        content={aggregatedTransactionDetail.data.aggregatedTxData.transactionFullCborHex}
-      />
-      <Item
         label="Transaction size (bytes)"
         content={aggregatedTransactionDetail.data.aggregatedTxData.txByteSize}
       />
@@ -101,6 +94,11 @@ function AggregatedTransactionDetail({
       <Item
         label="Transaction fee per participant (ADA)"
         content={aggregatedTransactionDetail.data.aggregatedTxData.feePerParticipant / 1_000_000}
+      />
+      <Item
+        label="Concise Binary Object Notation (CBOR)"
+        // content={truncate(aggregatedTransactionDetail.data.aggregatedTxData.transactionFullCborHex, undefined, 30)}
+        content={aggregatedTransactionDetail.data.aggregatedTxData.transactionFullCborHex}
       />
     </div>
   );
