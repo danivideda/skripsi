@@ -7,6 +7,7 @@ export class BatchesController {
   constructor(private batchesService: BatchesService) {}
 
   @Post('sign')
+  @HttpCode(200)
   async sign(@Body() signDto: SignBatchesDto) {
     return await this.batchesService.signBatch(signDto);
   }

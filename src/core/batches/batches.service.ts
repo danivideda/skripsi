@@ -62,7 +62,11 @@ export class BatchesService {
 
       // Stop here if it not all already signed
       if (updatedBatchStatus[0][0] < batchLimit) {
-        return this.utilsService.createResponse(HttpStatus.OK, 'Batch signed', updatedBatchStatus);
+        // return this.utilsService.createResponse(HttpStatus.OK, 'Batch signed', updatedBatchStatus);
+        return {
+          success: true,
+          message: 'OK',
+        };
       }
 
       // Continue here if all is signed
