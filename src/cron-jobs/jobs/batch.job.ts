@@ -186,11 +186,14 @@ export class BatchJob {
       }
 
       outputs.push([this.utilsService.decodeBech32(destinationAddressBech32), Number(lovelace)]);
-      outputs.push([
-        changeAddrListHex[changeAddrListHex.length - 1],
-        totalInputLovelace - lovelace - (feePerParticipant ?? 0),
-      ]);
-      witnessSetCount = witnessSetCount + Number(new Set(changeAddrListHex).size);
+      outputs.push([changeAddrListHex[0], totalInputLovelace - lovelace - (feePerParticipant ?? 0)]);
+
+      const changeAddrListHexString = [];
+      for (const item of changeAddrListHex) {
+        changeAddrListHexString.push(item.toString('hex'));
+      }
+      witnessSetCount = witnessSetCount + Number(new Set(changeAddrListHexString).size);
+      this.logger.debug(`Witness set count: ${witnessSetCount}`, changeAddrListHexString);
     }
 
     transactionBody.set(0, inputs).set(1, outputs).set(2, feeTotal).set(3, slotTTL);
