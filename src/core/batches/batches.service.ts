@@ -28,7 +28,7 @@ export class BatchesService {
 
   async signBatch(body: SignBatchesDto) {
     const { stakeAddressHex, signatureCborHex } = body;
-    const batchLimit = Number(this.configService.getOrThrow('BATCHED_TRANSACTION_LIMIT'));
+    // const batchLimit = Number(this.configService.getOrThrow('BATCHED_TRANSACTION_LIMIT'));
 
     try {
       const RedisUsersBatchesKey = `Users:Batches:${stakeAddressHex}`;
@@ -59,15 +59,12 @@ export class BatchesService {
       batchItem.witnessSignatureList.push(signatureCborHex);
       batchItem.signedList.push(stakeAddressHex);
       const updatedBatchStatus: any = await this.redisClient.SET(RedisItemBatchKey, JSON.stringify(batchItem));
+      this.logger.debug(updatedBatchStatus);
 
-      // Stop here if it not all already signed
-      if (updatedBatchStatus[0][0] < batchLimit) {
-        // return this.utilsService.createResponse(HttpStatus.OK, 'Batch signed', updatedBatchStatus);
-        return {
-          success: true,
-          message: 'OK',
-        };
-      }
+      // // Stop here if it not all already signed
+      // if (updatedBatchStatus[0][0] < batchLimit) {
+      //   return this.utilsService.createResponse(HttpStatus.OK, 'Batch signed', updatedBatchStatus);
+      // }
 
       // Continue here if all is signed
       const updatedBatchItemJsonString = await this.redisClient.GET(RedisItemBatchKey);
@@ -102,7 +99,7 @@ export class BatchesService {
         `Transaction full: ${transactionFullEncoded.toString('hex')}`,
       );
 
-      return this.utilsService.createResponse(HttpStatus.CREATED, 'Successfully signed all participants.', {
+      return this.utilsService.createResponse(HttpStatus.CREATED, 'Successfully signed transaction.', {
         txId: RedisItemBatchKey.slice(`${DBatchesRepoName}:`.length),
       });
     } catch (error) {
