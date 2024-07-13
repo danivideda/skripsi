@@ -59,6 +59,31 @@ export default function SignAggregated() {
     walletContext.setWalletStatus('signed');
   }
 
+  async function handleSubmitButton() {
+    const txId = await walletContext.walletApi?.submitTx(aggregatedTxData.transactionFullCborHex);
+    console.log('Successfully submitted Transaction: ', txId);
+
+    const url = `${process.env.backendUrl}/batches/submit`;
+    const response = await fetch(url, {
+      method: 'POST',
+      mode: 'cors',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        aggregatedTxId:
+          aggregatedTransactionContext.aggregatedTransactionDetail?.data.aggregatedTxId,
+      }),
+    });
+    // const body = await response.json();
+    if (response.status !== 200) {
+      console.log('exception occured');
+      return;
+    }
+
+    walletContext.setWalletStatus('disconnected');
+  }
+
   // aggregatedTxData.witnessSignatureList.length === 0
   //   ? 'Empty'
   //   : aggregatedTxData.witnessSignatureList.map((item, index) =>
@@ -91,8 +116,11 @@ export default function SignAggregated() {
         </ul>
       </Card>
       <div>Need {totalParticipant - totalSigned} more signature(s) from the participant</div>
-      <Button label="Sign Transaction" handler={handleSignButton} />
-      <Button label="Submit Transaction" />
+      <SignButton
+        handler={handleSignButton}
+        signed={aggregatedTransactionContext.aggregatedTransactionDetail.signed}
+      />
+      <SubmitButton handler={handleSubmitButton} allSigned={totalSigned === totalParticipant} />
     </div>
   );
 }
@@ -106,10 +134,36 @@ function Card({ label, children }: { label: string; children: React.ReactNode })
   );
 }
 
-function Button({ label, handler }: { label: string; handler?: () => void }) {
+function SignButton({ handler, signed = false }: { handler?: () => void; signed?: boolean }) {
   return (
-    <button className="my-2 p-3 border border-gray-300 rounded-md" onClick={handler}>
-      {label}
+    <button
+      className={`my-2 p-3 border border-gray-300 rounded-md ${
+        signed ? 'bg-gray-300 text-gray-500' : 'bg-green-300'
+      }`}
+      onClick={handler}
+      disabled={signed}
+    >
+      Sign Transaction
+    </button>
+  );
+}
+
+function SubmitButton({
+  handler,
+  allSigned = false,
+}: {
+  handler?: () => void;
+  allSigned?: boolean;
+}) {
+  return (
+    <button
+      className={`my-2 p-3 border border-gray-300 rounded-md ${
+        !allSigned ? 'bg-gray-300 text-gray-500' : 'bg-blue-300'
+      }`}
+      onClick={handler}
+      disabled={!allSigned}
+    >
+      Submit Transaction
     </button>
   );
 }
