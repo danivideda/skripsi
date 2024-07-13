@@ -1,4 +1,5 @@
 import { Inject, Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { RedisClientType } from 'redis';
 import {
   REDIS_CLIENT,
@@ -13,7 +14,10 @@ import type { Transaction, WalletStatus } from '../../common/types';
 export class TransactionsRepository {
   private readonly logger: Logger = new Logger(TransactionsRepository.name);
 
-  constructor(@Inject(REDIS_CLIENT) private readonly redisClient: RedisClientType) {}
+  constructor(
+    @Inject(REDIS_CLIENT) private readonly redisClient: RedisClientType,
+    private readonly configService: ConfigService,
+  ) {}
 
   async createTransaction(transaction: Transaction, stakeAddress: string) {
     const DTransactionItemKey = DTransactionsRepoName.concat(':', stakeAddress);
@@ -66,9 +70,11 @@ export class TransactionsRepository {
         return { stakeAddress: item.replace(DTransactionsRepoName + ':', ''), ...parsedItem };
       }),
     );
+    const batchLimit = Number(this.configService.getOrThrow('BATCHED_TRANSACTION_LIMIT'));
 
     return {
       queue_list: populated,
+      aggregation_count: batchLimit,
     };
   }
 
