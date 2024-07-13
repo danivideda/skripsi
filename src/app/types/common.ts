@@ -1,3 +1,4 @@
+import { BufferLike } from 'cbor/types/lib/decoder';
 import { UnspentTransactionOutput, WalletInstance } from './wallet';
 
 export type Utxo = { utxoString: string; txOutputs: UnspentTransactionOutput };
@@ -10,7 +11,7 @@ export type AggregatedTransactionDetail = {
     aggregatedTxData: {
       stakeAddressList: Array<string>;
       transactionFullCborHex: string;
-      witnessSignatureList: Array<string>;
+      witnessSignatureList: Array<BufferLike[]>;
       signedList: Array<string>;
       feeTotal: number;
       feePerParticipant: number;
@@ -22,11 +23,11 @@ export type AggregatedTransactionDetail = {
 
 export type WalletContextType = {
   walletApi: WalletInstance | null;
-  setWalletApi: (i: WalletInstance) => void;
+  setWalletApi: (i: WalletInstance | null) => void;
   walletStatus: WalletStatus;
   setWalletStatus: (i: WalletStatus) => void;
   walletAddress: string | null;
-  setWalletAddress: (i: string) => void;
+  setWalletAddress: (i: string | null) => void;
 };
 
 export type AggregatedTransactionContextType = {

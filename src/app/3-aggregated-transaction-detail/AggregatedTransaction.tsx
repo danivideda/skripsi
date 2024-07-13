@@ -3,24 +3,8 @@
 import { useContext, useEffect, useState } from 'react';
 import { WalletContext } from '../providers/wallet-provider';
 import { AggregatedTransactionContext } from '../providers/aggregated-transaction-provider';
+import type { AggregatedTransactionDetail } from '../types';
 
-type AggregatedTransactionDetail = {
-  in_batch: boolean;
-  signed: boolean;
-  data: {
-    aggregatedTxId: string;
-    aggregatedTxData: {
-      stakeAddressList: Array<string>;
-      transactionFullCborHex: string;
-      witnessSignatureList: Array<string>;
-      signedList: Array<string>;
-      feeTotal: number;
-      feePerParticipant: number;
-      totalInputUtxoCount: number;
-      txByteSize: number;
-    };
-  };
-};
 export default function AggregatedTransaction() {
   const walletContext = useContext(WalletContext);
   const aggregatedTransactionContext = useContext(AggregatedTransactionContext);
@@ -29,6 +13,7 @@ export default function AggregatedTransaction() {
       (walletContext.walletStatus === 'in_batch' || walletContext.walletStatus === 'signed') &&
       walletContext.walletAddress
     ) {
+      console.log("Run inside Aggregated Tx")
       fetchAggregatedTransactionDetail();
     }
 
@@ -47,24 +32,25 @@ export default function AggregatedTransaction() {
       const body = await response.json();
       aggregatedTransactionContext.setAggregatedTransactionDetail(body);
     }
-  }, [aggregatedTransactionContext, walletContext.walletAddress, walletContext.walletStatus]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [walletContext.walletAddress, walletContext.walletStatus]);
 
   if (walletContext.walletStatus === 'disconnected') {
     return 'Please connect your wallet first.';
   }
 
-  if (walletContext.walletStatus === 'in_batch') {
-    if (!aggregatedTransactionContext.aggregatedTransactionDetail) {
-      return 'loading...';
-    }
-    return (
-      <AggregatedTransactionDetail
-        aggregatedTransactionDetail={aggregatedTransactionContext.aggregatedTransactionDetail}
-      />
-    );
+  if (!(walletContext.walletStatus === 'in_batch' || walletContext.walletStatus === 'signed')) {
+    return 'No aggregated transaction for this user';
   }
 
-  return 'No aggregated transaction';
+  if (!aggregatedTransactionContext.aggregatedTransactionDetail) {
+    return 'loading...';
+  }
+  return (
+    <AggregatedTransactionDetail
+      aggregatedTransactionDetail={aggregatedTransactionContext.aggregatedTransactionDetail}
+    />
+  );
 }
 
 function AggregatedTransactionDetail({

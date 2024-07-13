@@ -104,7 +104,9 @@ export default function Wallet({
     clearUtxoListCallback();
     setStakeAddressHexCallback('');
     walletContext.setWalletStatus('disconnected');
-    console.log("Run disconnect wallet")
+    walletContext.setWalletAddress(null);
+    walletContext.setWalletApi(null);
+    console.log('Run disconnect wallet');
   }
 
   if (
