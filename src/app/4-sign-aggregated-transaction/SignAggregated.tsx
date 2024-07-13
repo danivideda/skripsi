@@ -91,7 +91,7 @@ export default function SignAggregated() {
   //     );
 
   return (
-    <div className="flex flex-col w-full">
+    <div className="flex flex-col w-full text-center">
       <Card label="Already signed">
         <div className="text-4xl text-purple-600 font-bold">{totalSigned}</div>
         <div className="text-md text-black">participant(s)</div>
@@ -115,7 +115,14 @@ export default function SignAggregated() {
               })}
         </ul>
       </Card>
-      <div>Need {totalParticipant - totalSigned} more signature(s) from the participant</div>
+      {totalSigned === totalParticipant ? (
+        <>
+          <div className='text-blue-500 font-semibold'>Multisignature has been collected.</div>
+          <div className='text-blue-500 font-semibold'>Ready to submit transaction!</div>
+        </>
+      ) : (
+        <div>Need {totalParticipant - totalSigned} more signature(s) from the participant</div>
+      )}
       <SignButton
         handler={handleSignButton}
         signed={aggregatedTransactionContext.aggregatedTransactionDetail.signed}
