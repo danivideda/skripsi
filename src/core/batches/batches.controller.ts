@@ -1,6 +1,7 @@
 import { Body, Controller, HttpCode, Post } from '@nestjs/common';
 import { BatchesService } from './batches.service';
 import { GetBatchDto, SignBatchesDto } from './dto';
+import { SubmitTxDto } from './dto/submit.dto';
 
 @Controller('batches')
 export class BatchesController {
@@ -10,6 +11,12 @@ export class BatchesController {
   @HttpCode(200)
   async sign(@Body() signDto: SignBatchesDto) {
     return await this.batchesService.signBatch(signDto);
+  }
+
+  @Post('submit')
+  @HttpCode(200)
+  async submit(@Body() submitTxDto: SubmitTxDto) {
+    return await this.batchesService.submitBatch(submitTxDto);
   }
 
   @Post()

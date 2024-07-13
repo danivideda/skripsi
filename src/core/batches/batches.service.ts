@@ -14,6 +14,7 @@ import { REDIS_CLIENT, BLOCKFROST_CLIENT, DUsersBatchesRepoName, DBatchesRepoNam
 import type { Batch } from '../../common/types';
 import { UtilsService } from '../../utils/utils.service';
 import type { GetBatchDto, SignBatchesDto } from './dto';
+import type { SubmitTxDto } from './dto/submit.dto';
 
 @Injectable()
 export class BatchesService {
@@ -157,6 +158,30 @@ export class BatchesService {
       in_batch: false,
       signed: false,
       data: null,
+    };
+  }
+
+  async submitBatch(body: SubmitTxDto) {
+    const { aggregatedTxId } = body;
+    const RedisBatchesItemKey = `${DBatchesRepoName}:${aggregatedTxId}`;
+    const batchItemJsonString = await this.redisClient.GET(RedisBatchesItemKey);
+    if (!batchItemJsonString) {
+      throw new InternalServerErrorException('batches item is missing');
+    }
+
+    const batchItem: Batch = JSON.parse(batchItemJsonString);
+
+    const redisQuery = this.redisClient.multi().DEL(RedisBatchesItemKey);
+    batchItem.stakeAddressList.forEach((address) => {
+      redisQuery.DEL(`${DUsersBatchesRepoName}:${address}`);
+    });
+
+    const saveToRedis = await redisQuery.exec();
+
+    this.logger.debug(`Saved to Redis: ${saveToRedis}`);
+
+    return {
+      message: 'Submitted successfully',
     };
   }
 }
