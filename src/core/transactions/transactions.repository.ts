@@ -24,7 +24,7 @@ export class TransactionsRepository {
 
     await this.checkIfKeyAlreadyExist(DTransactionItemKey);
 
-    await this.saveToDatabase(DTransactionItemKey, transaction);
+    await this.saveToDatabaseQueue(DTransactionItemKey, transaction);
 
     return {
       stakeAddress,
@@ -84,7 +84,7 @@ export class TransactionsRepository {
     }
   }
 
-  private async saveToDatabase(DTransactionsItemKey: string, transaction: Transaction) {
+  private async saveToDatabaseQueue(DTransactionsItemKey: string, transaction: Transaction) {
     await this.redisClient
       .multi()
       .SET(DTransactionsItemKey, JSON.stringify(transaction))
