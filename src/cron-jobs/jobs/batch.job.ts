@@ -61,9 +61,8 @@ export class BatchJob {
       if (notEnoughTransactionsInQueue) {
         return this.logger.log(notEnoughTransactionsInQueue.message);
       }
-
-      await this.setNetworkParameters();
       await this.collectTransactionsInQueueFromDatabase();
+      await this.setNetworkParameters();
       await this.buildBatchedTransaction();
       await this.saveToDatabase();
 
