@@ -63,11 +63,8 @@ export class BatchJob {
       }
 
       await this.setNetworkParameters();
-
       await this.collectTransactionsInQueueFromDatabase();
-
       await this.buildBatchedTransaction();
-
       await this.saveToDatabase();
 
       return this.logger.log('Batched.');
