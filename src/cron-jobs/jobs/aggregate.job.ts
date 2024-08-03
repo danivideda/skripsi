@@ -82,7 +82,6 @@ export class AggregateJob {
   }
 
   private async collectTransactionsInQueueFromDatabase(): Promise<void> {
-    // Collect Transaction object from Redis
     this.transactionKeyList = await this.redisClient.LRANGE(
       DTransactionsQueueKey,
       0,
