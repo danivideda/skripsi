@@ -10,6 +10,6 @@ export class CronJobsService {
 
   @Cron(CronExpression.EVERY_5_SECONDS)
   async handleBatchTransactions() {
-    return await this.batchJob.batchTransactions();
+    return await this.batchJob.aggregateTransactions();
   }
 }

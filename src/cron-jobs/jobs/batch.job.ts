@@ -47,9 +47,9 @@ export class BatchJob {
   ) {}
 
   /**
-   * Batch multiple transactions into one transaction
+   * Aggregate multiple transactions into one transaction
    */
-  async batchTransactions() {
+  async aggregateTransactions() {
     this.networkParams = {} as NetworkParams;
     this.transactionKeyList = [];
     this.transactionObjList = [];
