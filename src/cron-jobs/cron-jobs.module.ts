@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { BatchJob } from './jobs/batch.job';
+import { BatchJob } from './jobs/aggregate.job';
 import { CronJobsService } from './cron-jobs.service';
 import { BlockfrostModule } from '../providers/blockfrost/blockfrost.module';
 import { RedisModule } from '../providers/redis/redis.module';
