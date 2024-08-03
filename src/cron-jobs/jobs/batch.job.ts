@@ -57,9 +57,9 @@ export class BatchJob {
     this.txId = '';
 
     try {
-      const notEnoughTransactionsInQueue = await this.checkIfNotEnoughTransactionsInQueue();
-      if (notEnoughTransactionsInQueue) {
-        return this.logger.log(notEnoughTransactionsInQueue.message);
+      const enoughTransactionInQueue = await this.enoughTransactionInQueue();
+      if (!enoughTransactionInQueue.passed) {
+        return this.logger.log(enoughTransactionInQueue.message);
       }
       await this.collectTransactionsInQueueFromDatabase();
       await this.setNetworkParameters();
@@ -72,13 +72,32 @@ export class BatchJob {
     }
   }
 
-  private async checkIfNotEnoughTransactionsInQueue(): Promise<{ message: string } | null> {
+  private async enoughTransactionInQueue(): Promise<{ passed: boolean; message?: string }> {
     const transactionCountInQueue: number = await this.redisClient.lLen(DTransactionsQueueKey);
     const batchLimit = Number(this.configService.getOrThrow('BATCHED_TRANSACTION_LIMIT'));
     if (transactionCountInQueue < batchLimit) {
-      return { message: `Need at least ${batchLimit} in Queue. Current: ${transactionCountInQueue}` };
+      return { passed: false, message: `Need at least ${batchLimit} in Queue. Current: ${transactionCountInQueue}` };
     }
-    return null;
+    return { passed: true };
+  }
+
+  private async collectTransactionsInQueueFromDatabase(): Promise<void> {
+    // Collect Transaction object from Redis
+    this.transactionKeyList = await this.redisClient.LRANGE(
+      DTransactionsQueueKey,
+      0,
+      Number(this.configService.getOrThrow('BATCHED_TRANSACTION_LIMIT')) - 1,
+    );
+
+    for (const transactionKey of this.transactionKeyList) {
+      const jsonString: unknown = (
+        await this.redisClient.multi().GET(transactionKey).DEL(transactionKey).LPOP(DTransactionsQueueKey).exec()
+      )[0];
+
+      const obj: Transaction = JSON.parse(jsonString as string);
+
+      this.transactionObjList.push(obj);
+    }
   }
 
   private async setNetworkParameters(): Promise<void> {
@@ -100,25 +119,6 @@ export class BatchJob {
       timeToLiveSecond,
       slotTTL,
     };
-  }
-
-  private async collectTransactionsInQueueFromDatabase(): Promise<void> {
-    // Collect Transaction object from Redis
-    this.transactionKeyList = await this.redisClient.LRANGE(
-      DTransactionsQueueKey,
-      0,
-      Number(this.configService.getOrThrow('BATCHED_TRANSACTION_LIMIT')) - 1,
-    );
-
-    for (const transactionKey of this.transactionKeyList) {
-      const jsonString: unknown = (
-        await this.redisClient.multi().GET(transactionKey).DEL(transactionKey).LPOP(DTransactionsQueueKey).exec()
-      )[0];
-
-      const obj: Transaction = JSON.parse(jsonString as string);
-
-      this.transactionObjList.push(obj);
-    }
   }
 
   private async buildBatchedTransaction(): Promise<void> {
