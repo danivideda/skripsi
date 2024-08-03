@@ -66,7 +66,7 @@ export class BatchJob {
       await this.buildBatchedTransaction();
       await this.saveToDatabase();
 
-      return this.logger.log('Batched.');
+      return this.logger.log('Aggregated.');
     } catch (error) {
       this.logger.error(error);
     }
