@@ -26,8 +26,8 @@ type NetworkParams = {
 type TxBodyMap = Map<any, any>;
 
 @Injectable()
-export class BatchJob {
-  private readonly logger = new Logger(BatchJob.name);
+export class AggregateJob {
+  private readonly logger = new Logger(AggregateJob.name);
 
   private networkParams: NetworkParams;
   private transactionKeyList: string[];
