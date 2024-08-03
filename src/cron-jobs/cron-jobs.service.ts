@@ -9,7 +9,7 @@ export class CronJobsService {
   constructor(private readonly batchJob: BatchJob) {}
 
   @Cron(CronExpression.EVERY_5_SECONDS)
-  async handleBatchTransactions() {
+  async handleAggregateTransactions() {
     return await this.batchJob.aggregateTransactions();
   }
 }
