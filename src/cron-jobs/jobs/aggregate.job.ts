@@ -202,17 +202,17 @@ export class AggregateJob {
   }
 
   private async createFullTransactionCborBuffer(transactionBody: TxBodyMap, witnessSetCount: number) {
-    // Construct Witnesses dummy
+    // Construct Witnesses placeholder
     const witnessList = [];
     for (let i = 0; i < witnessSetCount; i++) {
       const vkey = Buffer.alloc(32, 'vkey-dummy-bytes');
       const signature = Buffer.alloc(64, 'signature-dummy-bytes');
       witnessList.push([vkey, signature]);
     }
-    const witnessSetDummy: Map<number, any> = new Map().set(0, witnessList);
+    const witnessSetPlaceholder: Map<number, any> = new Map().set(0, witnessList);
     const transactionFullCborBuffer: Buffer = await this.utilsService.encodeCbor([
       transactionBody,
-      witnessSetDummy,
+      witnessSetPlaceholder,
       true,
       null,
     ]);
