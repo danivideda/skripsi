@@ -174,8 +174,8 @@ export class AggregateJob {
       for (const item of utxos) {
         const input: Array<any> = (await this.utilsService.decodeCbor(item))[0];
         const output: Array<any> = (await this.utilsService.decodeCbor(item))[1];
-        inputs.push(input);
 
+        inputs.push(input);
         totalInputLovelace += Number(output[1]);
         changeAddrListHex.push(output[0]);
       }
