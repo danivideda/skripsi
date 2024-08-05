@@ -224,9 +224,9 @@ export class AggregateJob {
     transactionFullCborHexBuffer: Buffer,
   ): Promise<{ feeTotal: number; feePerParticipant: number }> {
     const { minFee, feePerByte } = this.networkParams;
-    // Calculate fees after including the witness set dummy
     const txByteSize = transactionFullCborHexBuffer.byteLength;
     const rawFeeTotal: number = minFee + feePerByte * txByteSize;
+
     const feeTotal: number =
       rawFeeTotal % this.transactionKeyList.length == 0
         ? rawFeeTotal
