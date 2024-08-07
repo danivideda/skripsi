@@ -55,7 +55,7 @@ export class BatchesService {
           throw new ForbiddenException('Address already signed');
       }
 
-      // Update and insert signature into redis
+      // Update and insert signatures into transaction
       batchItem.witnessSignatureList.push(signatureCborHex);
       batchItem.signedList.push(stakeAddressHex);
       const updatedBatchStatus: any = await this.redisClient.SET(RedisItemBatchKey, JSON.stringify(batchItem));
@@ -82,7 +82,7 @@ export class BatchesService {
       const transactionFullObj = await this.utilsService.decodeCbor(transactionFullCborHex);
       transactionFullObj[1] = new Map().set(0, allSignatureList);
 
-      // Send to redis
+      // Save to redis
       const transactionFullEncoded = await this.utilsService.encodeCbor(transactionFullObj);
       updatedBatchItem.transactionFullCborHex = transactionFullEncoded.toString('hex');
       this.logger.debug(transactionFullEncoded.toString('hex'));
