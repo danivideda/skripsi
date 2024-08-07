@@ -29,7 +29,6 @@ export class BatchesService {
 
   async signBatch(body: SignBatchesDto) {
     const { stakeAddressHex, signatureCborHex } = body;
-    // const batchLimit = Number(this.configService.getOrThrow('BATCHED_TRANSACTION_LIMIT'));
 
     try {
       const RedisUsersBatchesKey = `Users:Batches:${stakeAddressHex}`;
@@ -62,12 +61,6 @@ export class BatchesService {
       const updatedBatchStatus: any = await this.redisClient.SET(RedisItemBatchKey, JSON.stringify(batchItem));
       this.logger.debug(updatedBatchStatus);
 
-      // // Stop here if it not all already signed
-      // if (updatedBatchStatus[0][0] < batchLimit) {
-      //   return this.utilsService.createResponse(HttpStatus.OK, 'Batch signed', updatedBatchStatus);
-      // }
-
-      // Continue here if all is signed
       const updatedBatchItemJsonString = await this.redisClient.GET(RedisItemBatchKey);
       if (!updatedBatchItemJsonString) {
         throw new InternalServerErrorException();
