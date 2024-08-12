@@ -1,0 +1,42 @@
+[
+  {
+    "stakeAddressHex": "e0bd27b8e8e561b08b2f3df7d3bbf67e2ad1830b03462a793277f2d834",
+    "destinationAddressBech32": "addr_test1qra7ryfvycs4gf0wa42qak5rvv2rs8u85ru76zgganmwptp0d5dxpdatxft8ka436d8z4765fvacmdcxv7kjss08sg8q08scm7",
+    "utxos": [
+      "82825820714d003a13c823cbdb8c6b470fb3263e35a3cfd1fdbec6a66f8b15263f856a3b018258390046abb6b83f6bd76cefe7ae1d3741ba8024e71d275a953a4bfcc372eebd27b8e8e561b08b2f3df7d3bbf67e2ad1830b03462a793277f2d8341a04265273"
+    ],
+    "lovelace": 10000000
+  },
+  {
+    "stakeAddressHex": "e0d947cc409e1ae2e17e98c46d7718cfdc8ed10ac16696617dc50691ef",
+    "destinationAddressBech32": "addr_test1qra7ryfvycs4gf0wa42qak5rvv2rs8u85ru76zgganmwptp0d5dxpdatxft8ka436d8z4765fvacmdcxv7kjss08sg8q08scm7",
+    "utxos": [
+      "8282582019218208fcf00af977e999566acb5c4a712cf572e63a30238947fc8b8713b7e40182583900295b5d596ea79d3a0726f78a8012f48326ea8e0476e6b08b02663dccd947cc409e1ae2e17e98c46d7718cfdc8ed10ac16696617dc50691ef1a0428e3f0"
+    ],
+    "lovelace": 10000000
+  },
+  {
+    "stakeAddressHex": "e0605f7257b5e5e39d1fd21ec07e099f2a467d9a08eca3d9ea714c247c",
+    "destinationAddressBech32": "addr_test1qra7ryfvycs4gf0wa42qak5rvv2rs8u85ru76zgganmwptp0d5dxpdatxft8ka436d8z4765fvacmdcxv7kjss08sg8q08scm7",
+    "utxos": [
+      "828258209bcbd95192238e090f872ae8fbc1bf8441601de7eeec2e9f4e1079b8006d6b4a0182583900844adb13d8f5474e9eb4f3fc21bcd148175c8c7dc22c917d066d32ad605f7257b5e5e39d1fd21ec07e099f2a467d9a08eca3d9ea714c247c1a03904d70"
+    ],
+    "lovelace": 10000000
+  },
+  {
+    "stakeAddressHex": "e062db43ee2965f40fdead8f1a5389b05ff9c9285cd9d3b10663679aed",
+    "destinationAddressBech32": "addr_test1qra7ryfvycs4gf0wa42qak5rvv2rs8u85ru76zgganmwptp0d5dxpdatxft8ka436d8z4765fvacmdcxv7kjss08sg8q08scm7",
+    "utxos": [
+      "82825820cd127a64b97dfb0f0c879d263f3b85fc5a2acd26568290962c2db609cbdf944501825839009617d3e6173172c850e5539cca3c922c40b3e70ce19d81d5bf98d5e762db43ee2965f40fdead8f1a5389b05ff9c9285cd9d3b10663679aed1a02f7b6f0"
+    ],
+    "lovelace": 10000000
+  },
+  {
+    "stakeAddressHex": "e0ee67e685f7c7651339edae0a7b74ed0f9888c43aad6e98afb029d8ed",
+    "destinationAddressBech32": "addr_test1qra7ryfvycs4gf0wa42qak5rvv2rs8u85ru76zgganmwptp0d5dxpdatxft8ka436d8z4765fvacmdcxv7kjss08sg8q08scm7",
+    "utxos": [
+      "8282582093c54bf3133466c94921626f9a4e86639420bcb04f932440326e5ed49e3aa80801825839009fb17d8298f68dd67a6d245dc5b8c3e385167f98e18f7c73e28cea9dee67e685f7c7651339edae0a7b74ed0f9888c43aad6e98afb029d8ed1a025f2070"
+    ],
+    "lovelace": 10000000
+  }
+]

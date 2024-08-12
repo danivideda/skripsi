@@ -1,0 +1,8 @@
+{
+  "stakeAddressHex": "e0d947cc409e1ae2e17e98c46d7718cfdc8ed10ac16696617dc50691ef",
+  "destinationAddressBech32": "addr_test1qra7ryfvycs4gf0wa42qak5rvv2rs8u85ru76zgganmwptp0d5dxpdatxft8ka436d8z4765fvacmdcxv7kjss08sg8q08scm7",
+  "utxos": [
+    "8282582037931daf86ddc5af60861b40a3174c2ce3e8c800a639d9be2f62e573a9cf02670382583900299ab22f79b18f0237f7ac1dceb96f24354f4d60d1764e0b049be1c6d947cc409e1ae2e17e98c46d7718cfdc8ed10ac16696617dc50691ef1a05f5e100"
+  ],
+  "lovelace": 20000000
+}

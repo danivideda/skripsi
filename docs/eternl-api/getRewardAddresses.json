@@ -1,0 +1,5 @@
+{
+  "stakeAddress": "stake_test1uz7j0w8gu4smpze08hma8wlk0c4drqctqdrz57fjwledsdqlrhls4",
+  "prompt": "await api.getRewardAddresses()",
+  "response": ["e0bd27b8e8e561b08b2f3df7d3bbf67e2ad1830b03462a793277f2d834"]
+}
