@@ -13,13 +13,13 @@ Kode implementasi untuk Skripsi Agregasi Transaksi
 
 1. In each directories `backend-nestjs` and `frontend-nextjs` run `npm install`
 2. In `backend-nestjs`, create `env/.dev.env` following the sample inside `env/.env.sample`. Fill the Blockfrost API ([create here](https://blockfrost.io/)) and Redis URL ([create here](https://app.redislabs.com/))
-3. Start the backend service
+3. Start the backend service inside the `backend-nestjs` directory
 
     ```bash
     npm run start:dev
     ```
 
-4. Start the frontend service
+4. Start the frontend service inside the `frontend-nextjs` directory
 
     ```bash
     npm run dev
