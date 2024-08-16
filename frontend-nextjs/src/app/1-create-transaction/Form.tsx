@@ -91,7 +91,7 @@ export default function Form({
       walletContext.walletStatus !== 'available' ||
       !(address.length === 108) ||
       !(amount > 0) ||
-      !(amount < lovelaceAmountFromUTXOInput() - 2_000_000)
+      !(amount <= lovelaceAmountFromUTXOInput() - 2_000_000)
     );
   }
 
