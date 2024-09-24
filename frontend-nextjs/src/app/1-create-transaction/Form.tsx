@@ -2,6 +2,7 @@ import { ChangeEvent, FormEvent, useContext, useEffect, useState } from 'react';
 import { NumericFormat } from 'react-number-format';
 import { Utxo } from '../types';
 import { WalletContext } from '../providers/wallet-provider';
+import { destAddr } from '../helper';
 
 export default function Form({
   utxoList,
@@ -25,11 +26,14 @@ export default function Form({
       setAddress('');
       setAmount(0);
       setAmountInAdaForInputValue(0.0);
+    } else {
+      setAddress(destAddr.get(walletContext.walletAddress!)!);
+      setAmount(1000000000);
+      setAmountInAdaForInputValue(1000.0);
     }
-  }, [walletContext.walletStatus]);
+  }, [walletContext.walletStatus, walletContext.walletAddress]);
 
-  const addrPlaceHolder =
-    'addr_test1qpgkd...';
+  const addrPlaceHolder = 'addr_test1qpgkd...';
 
   function onAmountChange(e: ChangeEvent<HTMLInputElement>) {
     const cleanString = e.target.value.replace(/,/g, '');

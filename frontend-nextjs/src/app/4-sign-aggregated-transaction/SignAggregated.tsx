@@ -97,28 +97,30 @@ export default function SignAggregated() {
         <div className="text-md text-black">participant(s)</div>
       </Card>
       <Card label="Signature List">
-        <ul>
-          {aggregatedTxData.witnessSignatureList.length === 0
-            ? 'Empty'
-            : aggregatedTxData.witnessSignatureList.map((item) => {
-                return (
-                  <li
-                    key={item.toString()}
-                    className="group flex relative justify-center font-mono rounded-md bg-white p-1 mt-2 border break-all"
-                  >
-                    {truncate(cbor.decodeFirstSync(item).get(0)[0][1].toString('hex'), '...', 15)}
-                    <span className="group-hover:opacity-100 group-hover:visible transition-opacity bg-gray-800 px-1 text-sm text-gray-100 rounded-md absolute -translate-x-[90%] opacity-0 invisible m-1 mx-auto z-10">
-                      {cbor.decodeFirstSync(item).get(0)[0][1].toString('hex')}
-                    </span>
-                  </li>
-                );
-              })}
-        </ul>
+        <div className='h-[150px] overflow-x-hidden'>
+          <ul>
+            {aggregatedTxData.witnessSignatureList.length === 0
+              ? 'Empty'
+              : aggregatedTxData.witnessSignatureList.map((item) => {
+                  return (
+                    <li
+                      key={item.toString()}
+                      className="group flex relative justify-center font-mono rounded-md bg-white p-1 mt-2 border break-all"
+                    >
+                      {truncate(cbor.decodeFirstSync(item).get(0)[0][1].toString('hex'), '...', 15)}
+                      <span className="group-hover:opacity-100 group-hover:visible transition-opacity bg-gray-800 px-1 text-sm text-gray-100 rounded-md absolute -translate-x-[90%] opacity-0 invisible m-1 mx-auto z-10">
+                        {cbor.decodeFirstSync(item).get(0)[0][1].toString('hex')}
+                      </span>
+                    </li>
+                  );
+                })}
+          </ul>
+        </div>
       </Card>
       {totalSigned === totalParticipant ? (
         <>
-          <div className='text-blue-500 font-semibold'>Multisignature has been collected.</div>
-          <div className='text-blue-500 font-semibold'>Ready to submit transaction!</div>
+          <div className="text-blue-500 font-semibold">Multisignature has been collected.</div>
+          <div className="text-blue-500 font-semibold">Ready to submit transaction!</div>
         </>
       ) : (
         <div>Need {totalParticipant - totalSigned} more signature(s) from the participant</div>

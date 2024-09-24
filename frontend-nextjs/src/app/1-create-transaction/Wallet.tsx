@@ -2,7 +2,7 @@ import { useContext, useState } from 'react';
 import { NumericFormat } from 'react-number-format';
 import * as cbor from 'cbor';
 import { Utxo, UnspentTransactionOutput, WalletStatus } from '../types';
-import { bufferToHexString, truncate } from '../helper';
+import { bufferToHexString, encodeBech32, truncate } from '../helper';
 import { WalletContext } from '../providers/wallet-provider';
 
 export default function Wallet({
@@ -143,7 +143,7 @@ export default function Wallet({
             ADA
           </div>
           <div className="break-all">
-            Wallet Address: <span className="font-mono font-semibold">{userAddress}</span>
+            Wallet Address: <span className="font-mono font-semibold">{encodeBech32("stake_test",userAddress)}</span>
           </div>
           <div>
             Status:{' '}

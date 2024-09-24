@@ -1,7 +1,7 @@
 'use client';
 
 import { useContext, useEffect, useState } from 'react';
-import { truncate } from '../helper';
+import { encodeBech32, truncate } from '../helper';
 import { NumericFormat } from 'react-number-format';
 import { WalletContext } from '../providers/wallet-provider';
 import { WalletStatus } from '../types';
@@ -119,7 +119,7 @@ function QueueList({ list, isFetching }: { list: any; isFetching: boolean }) {
                     </td>
                     <td className="p-1 px-3 text-left border border-black break-all font-mono">
                       <div className="group flex relative">
-                        {truncate(item.stakeAddress, undefined, 10)}
+                        {truncate(encodeBech32("stake_test",item.stakeAddress), undefined, 10)}
                         <span className="group-hover:opacity-100 group-hover:visible transition-opacity bg-gray-800 px-1 text-sm text-gray-100 rounded-md absolute translate-x-full opacity-0 invisible m-1 mx-auto z-10">
                           {item.stakeAddress}
                         </span>

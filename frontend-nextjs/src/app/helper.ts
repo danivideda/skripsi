@@ -14,7 +14,13 @@ export function bufferToHexString(
   return Buffer.from(buffer).toString('hex');
 }
 
-function decodeBech32(encoded: string): string {
+export function encodeBech32(prefix: string, payload: string): string {
+  const words = bech32.toWords(Buffer.from(payload, 'hex'));
+  // The 1023 characters limit is the recommended maximum length, as per the docs says: https://npm.io/package/bech32
+  return bech32.encode(prefix, words, 1023);
+}
+
+export function decodeBech32(encoded: string): string {
   // The 1023 characters limit is the recommended maximum length, as per the docs says: https://npm.io/package/bech32
   const decoded = bech32.decode(encoded, 1023);
   return Buffer.from(bech32.fromWords(decoded.words)).toString('hex');
