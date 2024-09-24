@@ -36,7 +36,7 @@ export class TransactionsRepository {
     // signed
     const RedisUsersBatchesKey = `${DUsersBatchesRepoName}:${stakeAddressHex}`;
     const usersBatchesItem = await this.redisClient.GET(RedisUsersBatchesKey);
-    this.logger.log(usersBatchesItem, stakeAddressHex);
+    // this.logger.log(usersBatchesItem, stakeAddressHex);
     if (usersBatchesItem) {
       const RedisBatchesKey: string = usersBatchesItem;
       const batchesItem = await this.redisClient.GET(RedisBatchesKey);
@@ -63,7 +63,7 @@ export class TransactionsRepository {
   }
 
   async getTransactionListInQueue() {
-    const queueList = await this.redisClient.LRANGE(DTransactionsQueueKey, 0, 20);
+    const queueList = await this.redisClient.LRANGE(DTransactionsQueueKey, 0, -1);
     const populated = await Promise.all(
       queueList.map(async (item) => {
         const parsedItem = JSON.parse((await this.redisClient.GET(item)) as string);

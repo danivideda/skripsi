@@ -81,19 +81,18 @@ function QueueList({ list, isFetching }: { list: any; isFetching: boolean }) {
 
   return (
     <>
-      <div>
-        <div className="flex justify-between">
-          <div>
-            <h1 className="text-md">
-              Number of queue: <span className="font-semibold">{list.queue_list.length}</span>
-            </h1>
-            <h1 className="text-md">
-              Needed for aggregation:{' '}
-              <span className="font-semibold">{list.aggregation_count}</span>
-            </h1>
-          </div>
-          {isFetching && <h1 className="font-light italic">Fetching...</h1>}
+      <div className="flex justify-between">
+        <div>
+          <h1 className="text-md">
+            Number of queue: <span className="font-semibold">{list.queue_list.length}</span>
+          </h1>
+          <h1 className="text-md">
+            Needed for aggregation: <span className="font-semibold">{list.aggregation_count}</span>
+          </h1>
         </div>
+        {isFetching && <h1 className="font-light italic">Fetching...</h1>}
+      </div>
+      <div className="overflow-x-hidden h-[400px]">
         <table className="w-full border-2 border-black mt-2">
           <thead>
             <tr className="bg-orange-200">
