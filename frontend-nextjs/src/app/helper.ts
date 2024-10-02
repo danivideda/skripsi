@@ -286,4 +286,12 @@ export const destAddr: Map<string, string> = new Map([
     decodeBech32('stake_test1urc4seg79x2c0afv0qqy7lgd6nj08ed4cpy7n490ylhqj7qe3z37q'),
     'addr_test1qpz76hpqa2l3hyn5r25dkrk93adwszlrjmwx353m5jdf2hgy8uu2e3lha5a8hd0kdvzk7ehm230rq3ztnzrj59sxjtvqxex326',
   ],
+  [
+    decodeBech32('stake_test1uz9uafejqkjyu7lnrucustq9t6eah7qunhxqtw70u4rsstcetlku3'),
+    'addr_test1qr7jl3nj5p7e27vzyajp22he00mkt08vqr4qsemmgfn3tf6hqcm6zckerc3ms4ut5wfyf9qf0uswl69uvvda7w3ww2cqew3ald',
+  ],
+  [
+    decodeBech32('stake_test1uzwanulv8t5jerpa6mstw5pnzyj499nynarx83858lhpj8qevtsps'),
+    'addr_test1qr2zzzwpgk5lwdg9k5m9nl2emvy4te93pq0hcppxw6vxhhlqsmcp68p69r034rs64km5p59lygun4ch976fggpt5d8gqzf5j7q',
+  ],
 ]);
